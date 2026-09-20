@@ -32,6 +32,8 @@ No repository creation, push, tag, or hosted release is performed by these instr
 
 ## Test evidence and issue reports
 
+Use the [tester guide](tester-guide.md) for the manual checklist and reporting safeguards. A [shareable invitation draft](tester-invitation.md) is available for an explicitly chosen audience; creating the draft does not send it. GitHub provides separate compatibility and bug-report templates. Keep untested cases distinct from passes.
+
 The local user reported successful in-game operation on 2026-09-20. This supports a tester preview, not a claim of universal stability. Ask testers to report menu opening, camo and face-paint changes, repeated swaps, area transitions, cutscenes, keyboard/controller behavior, scoped controls, and other installed mods separately. Known upstream icon and scoped-control reports remain documented in the bundled README.
 
 For issues, collect game/store version, Windows version, distribution checksum, input device, other mods, reproduction steps, and redacted `status --json` and `verify --json` output. Do not request public uploads of saves, full crash dumps, or personal file paths by default.

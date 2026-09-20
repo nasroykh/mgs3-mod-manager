@@ -8,6 +8,8 @@ A Windows command-line mod manager for the supported build of Metal Gear Solid 3
 
 The user reported successful gameplay with Crouch Walk and QCamo enabled together on 2026-09-20. This is a local combined smoke test, not a compatibility guarantee for other builds or every gameplay scenario.
 
+**Help test:** follow the [small-group tester guide](docs/tester-guide.md), then submit a [compatibility report](https://github.com/nasroykh/mgs3-mod-manager/issues/new?template=compatibility_report.md) or [bug report](https://github.com/nasroykh/mgs3-mod-manager/issues/new?template=bug_report.md). Review and redact diagnostics before posting publicly.
+
 The executable checks three compiled binary fingerprints. Select another installation of the same build with `--game-root <folder>`. Schema 1 supports existing textures; schema 2 adds absent-origin root `.asi` plugins; schema 3 manages the pinned standalone Ultimate ASI Loader. QCamo and its loader can both be installed through this manager, without MGSHDFix. The manager has no network service, dependency downloader, or background process.
 
 **QCamo and standalone ASI loader:** see the [current plan](docs/managed-asi-loader-plan.md), [package instructions](mods/qcamo/README.md), and [validation record](docs/asi-loader-validation.md). Earlier texture and external-loader checkpoints are historical and are not proof of gameplay testing.

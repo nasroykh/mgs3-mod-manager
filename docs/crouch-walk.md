@@ -2,7 +2,7 @@
 
 ## Status and scope
 
-This is an unreleased extension after v0.1.0. The published v0.1.0 executable cannot read schema 4 or run `import-crouch`. Use the newly built executable explicitly; do not downgrade after importing a schema-4 package, even after removing that package, because transaction history retains its manifest.
+This extension requires MGS3 Mod Manager v0.2.0 or later. Follow the [binary installation instructions](../README.md#install-without-go-or-git); Go and Git are not required. The v0.1.0 executable cannot read schema 4 or run `import-crouch`. Do not downgrade after importing a schema-4 package, even after removing that package, because transaction history retains its manifest.
 
 The user confirmed successful gameplay on 2026-09-20, explicitly testing Crouch Walk and QCamo together. The local combined smoke-test gate is complete. This is a user-reported result, not independently recorded proof or a completed scenario-by-scenario compatibility matrix.
 
@@ -24,13 +24,13 @@ All target parent directories must already exist, as they do in the inspected in
 
 ## Local conversion and installation
 
-Close the game and launcher. Use the new executable's full path if another manager version is on PATH. The output directory must already exist; existing output files are never replaced.
+Close the game and launcher. Open PowerShell in a writable folder. Use the new executable's full path if another manager version is on PATH. The output directory must already exist; existing output files are never replaced.
 
 ```powershell
-$manager = '.\dist\mgs3mod.exe'
+$manager = 'mgs3mod'
 $game = 'C:\Games\METAL GEAR SOLID 3 - MCV'
 $archive = 'C:\Games\MGS3 Mods\MGS3CrouchWalk-27-0-2-1-1701782548.zip'
-$package = '.\dist\crouch-walk-0.2.1.mgs3mod.zip'
+$package = '.\crouch-walk-0.2.1.mgs3mod.zip'
 & $manager import-crouch $archive --out $package --dry-run
 & $manager import-crouch $archive --out $package
 & $manager verify --game-root $game

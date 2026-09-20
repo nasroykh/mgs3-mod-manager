@@ -10,7 +10,9 @@ Git stores source, manifests, build recipes, documentation, notices, and assets 
 
 ## What testers receive
 
-Send the complete `qcamo-1.0.4-standalone-distribution.zip` plus `checksums.txt` from [v0.1.0 release assets](https://github.com/nasroykh/mgs3-mod-manager/releases/tag/v0.1.0). The archive contains the manager, both import packages, install/remove instructions, upstream licenses, manager dependency notices, provenance, and member checksums. Testers need neither Go nor Git and must not copy the author's manager state. Local pre-release artifacts in the historical validation record are superseded by the versioned release assets.
+Send the complete `qcamo-1.0.4-standalone-distribution.zip` plus `checksums.txt` from [v0.2.0 release assets](https://github.com/nasroykh/mgs3-mod-manager/releases/tag/v0.2.0). The archive contains the manager, both import packages, install/remove instructions, upstream licenses, manager dependency notices, provenance, and member checksums. Testers need neither Go nor Git and must not copy the author's manager state. Local pre-release artifacts in the historical validation record are superseded by the versioned release assets.
+
+For Crouch Walk, share the manager release and [local-import instructions](crouch-walk.md), not the mod archive or generated package. Each tester obtains the original Nexus download themselves. The adapter is included in v0.2.0; Crouch Walk payloads are excluded from all release assets. Never send the v0.1.0 manager to someone with schema-4 history.
 
 1. Download the complete distribution, verify its SHA-256 against the separately supplied checksum, and extract it outside the game folder.
 2. Follow the bundled README, supplying the tester's actual game path with `--game-root` on each command.

@@ -4,13 +4,13 @@ Windows AMD64 tags use `vMAJOR.MINOR.PATCH`. v0.1.0 is the first narrowly scoped
 
 ## Assets
 
-The manager ZIP is `mgs3mod_<version-without-v>_windows_amd64.zip` with exactly `mgs3mod.exe`, `README.md`, and `THIRD-PARTY-NOTICES.txt` at root. Other assets: both mod packages, the complete QCamo distribution, `install.ps1`, and `checksums.txt`. Never upload game files, state, saves, logs, caches, or the packaging staging subdirectory.
+The manager ZIP is `mgs3mod_<version-without-v>_windows_amd64.zip` with exactly `mgs3mod.exe`, `README.md`, and `THIRD-PARTY-NOTICES.txt` at root. Other assets: QCamo and standalone loader packages, the complete QCamo distribution, `install.ps1`, and `checksums.txt`. Never upload Crouch Walk's original archive or locally converted package, game files, state, saves, logs, caches, or the packaging staging subdirectory. Crouch Walk support ships as adapter code and pinned metadata only; users provide their own download.
 
 ## Release gates
 
 1. Review source, game compatibility limits, and `docs/releases/<tag>.md`.
 2. Run `scripts/build.ps1` and `scripts/test-installer.ps1` on Windows.
-3. Obtain the official pinned QCamo and UAL archives. Run `scripts/package-release.ps1 -Version v0.1.0 -UpstreamArchive <zip> -LoaderArchive <zip>`. The recipe rejects mismatched upstream hashes and existing outputs.
+3. Obtain the official pinned QCamo and UAL archives. Run `scripts/package-release.ps1 -Version v0.2.0 -UpstreamArchive <zip> -LoaderArchive <zip>`. The recipe rejects mismatched upstream hashes and existing outputs.
 4. Repeat packaging with a fresh output directory; compare assets. Run real-artifact tests with `MGS3MOD_QCAMO_PACKAGE` and `MGS3MOD_ASI_LOADER_PACKAGE` set to the generated packages.
 5. Commit, push, and tag the reviewed source. Do not move a published tag or replace published bytes.
 
@@ -22,4 +22,4 @@ To repair a failed publishing workflow without moving an existing version tag, p
 
 Hosted Windows runners may use an 8.3 alias in TEMP and grant parent-directory DELETE_CHILD rights. The workflow uses a canonical scratch path under `work/test-temp` and denies that alternate delete-child route on both this scratch tree and the separate `.cache/winfs-tests` fixture tree. File DELETE rights remain available until a fixture explicitly denies them. This keeps strict production path validation and the negative ACL test meaningful without skipping tests or changing game-directory permissions.
 
-If a gate fails, stop publication. For a published defect, issue a fixed new release; never silently downgrade state or rewrite the existing version. Older binaries may not read schema-3 history. Binaries are not Authenticode-signed; do not advise disabling security tools.
+If a gate fails, stop publication. For a published defect, issue a fixed new release; never silently downgrade state or rewrite the existing version. Older binaries may not read schema-3 or schema-4 history, even after the associated mod is removed. Binaries are not Authenticode-signed; do not advise disabling security tools.

@@ -1,0 +1,835 @@
+[
+  {
+    "target": "assets/mtar/fr/00023291.mtar",
+    "originalSha256": "6c94a613f5d1475ff6e8c549ac0941855095864413e9d25cacfa9e8f2b6902a4",
+    "originalAbsent": false,
+    "payloadSha256": "2d3e54b7d8687391943467c443adcdf74b62a10e7e49051131d930da9e2ed12e",
+    "payloadBytes": 329392
+  },
+  {
+    "target": "assets/mtar/fr/00025bb7.mtar",
+    "originalSha256": "b06f715cc1f993191c2d8eae837dd8fe0b3e989ce12d6a6d869266461b17cda9",
+    "originalAbsent": false,
+    "payloadSha256": "30d68ff70540972c1f79e03a63b90ce9daffb5a25399e27782507f3d8f0d2ed9",
+    "payloadBytes": 296752
+  },
+  {
+    "target": "assets/mtar/fr/0002614b.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/fr/00027945.mtar",
+    "originalSha256": "167e92c4853d44ab606b5acba308103dd09c53d5601b4a39404a709d63e75d03",
+    "originalAbsent": false,
+    "payloadSha256": "7aab5c8f94f45b9964a1c109919afab091c9873d4d81bfe7a8d91cf31d6f1c05",
+    "payloadBytes": 372272
+  },
+  {
+    "target": "assets/mtar/fr/00027ef8.mtar",
+    "originalSha256": "f21ef5bceabb92f236983c2f40b7b5f6345c7f90609a929d35cbfcab852de0ca",
+    "originalAbsent": false,
+    "payloadSha256": "e39312f09d86235dd299b6ce1f92f7c4133459635cbfd5a93e1d4e069466bf15",
+    "payloadBytes": 322016
+  },
+  {
+    "target": "assets/mtar/fr/00201199.mtar",
+    "originalSha256": "f21ef5bceabb92f236983c2f40b7b5f6345c7f90609a929d35cbfcab852de0ca",
+    "originalAbsent": false,
+    "payloadSha256": "e39312f09d86235dd299b6ce1f92f7c4133459635cbfd5a93e1d4e069466bf15",
+    "payloadBytes": 322016
+  },
+  {
+    "target": "assets/mtar/fr/00215251.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/fr/0046e2cb.mtar",
+    "originalSha256": "a032de7fca2e4b59b575b0103d9092b54b39c88e9712512e2947c62c69316002",
+    "originalAbsent": false,
+    "payloadSha256": "26080d8e823680e71d1a6f976711e66c7c9549e5d11e6547b3be8b2a96b727fd",
+    "payloadBytes": 301040
+  },
+  {
+    "target": "assets/mtar/fr/00482b59.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/fr/00482b59_slot_weapons-pipogun.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/fr/0048e32b.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "d9f22f45af0bd9edf61c5c971cf24094182381fa399aa8fa03d0ebbec1543086",
+    "payloadBytes": 286928
+  },
+  {
+    "target": "assets/mtar/fr/004963a5.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/fr/004963a5_slot_weapons-coltgave_custom.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/fr/004c4af2.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/fr/0051525f.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/fr/005ea57b.mtar",
+    "originalSha256": "e40f14070b86ca2ba32d0f7362bffe70dd2684fe1a5dc4cfa057412aa9fc3bdb",
+    "originalAbsent": false,
+    "payloadSha256": "ee728da6f11384796283bea111b7b39c17f969c3d7b067db7d231261c392385e",
+    "payloadBytes": 289808
+  },
+  {
+    "target": "assets/mtar/fr/006891cc.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "fca9357a78602619776a57bb84748162536e6c40773f4b9270277ba47c25bd22",
+    "payloadBytes": 816432
+  },
+  {
+    "target": "assets/mtar/fr/006bc12e.mtar",
+    "originalSha256": "9e64283807672695bef9bc1345574a4031da4dc32b2253663e9b67fe06c547da",
+    "originalAbsent": false,
+    "payloadSha256": "d9f22f45af0bd9edf61c5c971cf24094182381fa399aa8fa03d0ebbec1543086",
+    "payloadBytes": 286928
+  },
+  {
+    "target": "assets/mtar/fr/006bc12e_slot_weapons-knife.mtar",
+    "originalSha256": "9e64283807672695bef9bc1345574a4031da4dc32b2253663e9b67fe06c547da",
+    "originalAbsent": false,
+    "payloadSha256": "d9f22f45af0bd9edf61c5c971cf24094182381fa399aa8fa03d0ebbec1543086",
+    "payloadBytes": 286928
+  },
+  {
+    "target": "assets/mtar/fr/006c745a.mtar",
+    "originalSha256": "6c94a613f5d1475ff6e8c549ac0941855095864413e9d25cacfa9e8f2b6902a4",
+    "originalAbsent": false,
+    "payloadSha256": "2d3e54b7d8687391943467c443adcdf74b62a10e7e49051131d930da9e2ed12e",
+    "payloadBytes": 329392
+  },
+  {
+    "target": "assets/mtar/fr/00914f09.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/fr/00ad99ca.mtar",
+    "originalSha256": "a032de7fca2e4b59b575b0103d9092b54b39c88e9712512e2947c62c69316002",
+    "originalAbsent": false,
+    "payloadSha256": "26080d8e823680e71d1a6f976711e66c7c9549e5d11e6547b3be8b2a96b727fd",
+    "payloadBytes": 301040
+  },
+  {
+    "target": "assets/mtar/fr/00bad929.mtar",
+    "originalSha256": "d0d258441b6ff5e7a85a292dfa1d1680575787f1fb972a2aef5aa1084a3eb357",
+    "originalAbsent": false,
+    "payloadSha256": "e04512639ade5599018363f317f142f12638349be31cc0b9c12ef803d16e38eb",
+    "payloadBytes": 288016
+  },
+  {
+    "target": "assets/mtar/fr/00c8b59b.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/fr/00ccbff6.mtar",
+    "originalSha256": "a032de7fca2e4b59b575b0103d9092b54b39c88e9712512e2947c62c69316002",
+    "originalAbsent": false,
+    "payloadSha256": "26080d8e823680e71d1a6f976711e66c7c9549e5d11e6547b3be8b2a96b727fd",
+    "payloadBytes": 301040
+  },
+  {
+    "target": "assets/mtar/fr/00d14e46.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/fr/00d791ea.mtar",
+    "originalSha256": "4f71de79ecd364b1bdfbbd18c331b4ed46604f8036f4aa2ab9b088a3d313c707",
+    "originalAbsent": false,
+    "payloadSha256": "64d8b088cdd0fd3e5458296e545d93b96630892a2009a9067fce29a6959338b0",
+    "payloadBytes": 303760
+  },
+  {
+    "target": "assets/mtar/fr/00f8e660.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/fr/00fc64d1.mtar",
+    "originalSha256": "2c959f84e490e22f53e6370ae75fa2a0d0a5e02b0396294d6fc052547859c19b",
+    "originalAbsent": false,
+    "payloadSha256": "5ab554b144dbce1fc224a50333722b8eb4431e51ff0d693113cbf7cca5a1b30b",
+    "payloadBytes": 247552
+  },
+  {
+    "target": "assets/mtar/it/00023291.mtar",
+    "originalSha256": "6c94a613f5d1475ff6e8c549ac0941855095864413e9d25cacfa9e8f2b6902a4",
+    "originalAbsent": false,
+    "payloadSha256": "2d3e54b7d8687391943467c443adcdf74b62a10e7e49051131d930da9e2ed12e",
+    "payloadBytes": 329392
+  },
+  {
+    "target": "assets/mtar/it/00025bb7.mtar",
+    "originalSha256": "b06f715cc1f993191c2d8eae837dd8fe0b3e989ce12d6a6d869266461b17cda9",
+    "originalAbsent": false,
+    "payloadSha256": "30d68ff70540972c1f79e03a63b90ce9daffb5a25399e27782507f3d8f0d2ed9",
+    "payloadBytes": 296752
+  },
+  {
+    "target": "assets/mtar/it/0002614b.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/it/00027945.mtar",
+    "originalSha256": "167e92c4853d44ab606b5acba308103dd09c53d5601b4a39404a709d63e75d03",
+    "originalAbsent": false,
+    "payloadSha256": "7aab5c8f94f45b9964a1c109919afab091c9873d4d81bfe7a8d91cf31d6f1c05",
+    "payloadBytes": 372272
+  },
+  {
+    "target": "assets/mtar/it/00027ef8.mtar",
+    "originalSha256": "f21ef5bceabb92f236983c2f40b7b5f6345c7f90609a929d35cbfcab852de0ca",
+    "originalAbsent": false,
+    "payloadSha256": "e39312f09d86235dd299b6ce1f92f7c4133459635cbfd5a93e1d4e069466bf15",
+    "payloadBytes": 322016
+  },
+  {
+    "target": "assets/mtar/it/00201199.mtar",
+    "originalSha256": "f21ef5bceabb92f236983c2f40b7b5f6345c7f90609a929d35cbfcab852de0ca",
+    "originalAbsent": false,
+    "payloadSha256": "e39312f09d86235dd299b6ce1f92f7c4133459635cbfd5a93e1d4e069466bf15",
+    "payloadBytes": 322016
+  },
+  {
+    "target": "assets/mtar/it/00215251.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/it/0046e2cb.mtar",
+    "originalSha256": "a032de7fca2e4b59b575b0103d9092b54b39c88e9712512e2947c62c69316002",
+    "originalAbsent": false,
+    "payloadSha256": "26080d8e823680e71d1a6f976711e66c7c9549e5d11e6547b3be8b2a96b727fd",
+    "payloadBytes": 301040
+  },
+  {
+    "target": "assets/mtar/it/00482b59.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/it/00482b59_slot_weapons-pipogun.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/it/0048e32b.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "d9f22f45af0bd9edf61c5c971cf24094182381fa399aa8fa03d0ebbec1543086",
+    "payloadBytes": 286928
+  },
+  {
+    "target": "assets/mtar/it/004963a5.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/it/004963a5_slot_weapons-coltgave_custom.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/it/004c4af2.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/it/0051525f.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/it/005ea57b.mtar",
+    "originalSha256": "e40f14070b86ca2ba32d0f7362bffe70dd2684fe1a5dc4cfa057412aa9fc3bdb",
+    "originalAbsent": false,
+    "payloadSha256": "ee728da6f11384796283bea111b7b39c17f969c3d7b067db7d231261c392385e",
+    "payloadBytes": 289808
+  },
+  {
+    "target": "assets/mtar/it/006891cc.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "fca9357a78602619776a57bb84748162536e6c40773f4b9270277ba47c25bd22",
+    "payloadBytes": 816432
+  },
+  {
+    "target": "assets/mtar/it/006bc12e.mtar",
+    "originalSha256": "9e64283807672695bef9bc1345574a4031da4dc32b2253663e9b67fe06c547da",
+    "originalAbsent": false,
+    "payloadSha256": "d9f22f45af0bd9edf61c5c971cf24094182381fa399aa8fa03d0ebbec1543086",
+    "payloadBytes": 286928
+  },
+  {
+    "target": "assets/mtar/it/006bc12e_slot_weapons-knife.mtar",
+    "originalSha256": "9e64283807672695bef9bc1345574a4031da4dc32b2253663e9b67fe06c547da",
+    "originalAbsent": false,
+    "payloadSha256": "d9f22f45af0bd9edf61c5c971cf24094182381fa399aa8fa03d0ebbec1543086",
+    "payloadBytes": 286928
+  },
+  {
+    "target": "assets/mtar/it/006c745a.mtar",
+    "originalSha256": "6c94a613f5d1475ff6e8c549ac0941855095864413e9d25cacfa9e8f2b6902a4",
+    "originalAbsent": false,
+    "payloadSha256": "2d3e54b7d8687391943467c443adcdf74b62a10e7e49051131d930da9e2ed12e",
+    "payloadBytes": 329392
+  },
+  {
+    "target": "assets/mtar/it/00914f09.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/it/00ad99ca.mtar",
+    "originalSha256": "a032de7fca2e4b59b575b0103d9092b54b39c88e9712512e2947c62c69316002",
+    "originalAbsent": false,
+    "payloadSha256": "26080d8e823680e71d1a6f976711e66c7c9549e5d11e6547b3be8b2a96b727fd",
+    "payloadBytes": 301040
+  },
+  {
+    "target": "assets/mtar/it/00bad929.mtar",
+    "originalSha256": "d0d258441b6ff5e7a85a292dfa1d1680575787f1fb972a2aef5aa1084a3eb357",
+    "originalAbsent": false,
+    "payloadSha256": "e04512639ade5599018363f317f142f12638349be31cc0b9c12ef803d16e38eb",
+    "payloadBytes": 288016
+  },
+  {
+    "target": "assets/mtar/it/00c8b59b.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/it/00ccbff6.mtar",
+    "originalSha256": "a032de7fca2e4b59b575b0103d9092b54b39c88e9712512e2947c62c69316002",
+    "originalAbsent": false,
+    "payloadSha256": "26080d8e823680e71d1a6f976711e66c7c9549e5d11e6547b3be8b2a96b727fd",
+    "payloadBytes": 301040
+  },
+  {
+    "target": "assets/mtar/it/00d14e46.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/it/00d791ea.mtar",
+    "originalSha256": "4f71de79ecd364b1bdfbbd18c331b4ed46604f8036f4aa2ab9b088a3d313c707",
+    "originalAbsent": false,
+    "payloadSha256": "64d8b088cdd0fd3e5458296e545d93b96630892a2009a9067fce29a6959338b0",
+    "payloadBytes": 303760
+  },
+  {
+    "target": "assets/mtar/it/00f8e660.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/it/00fc64d1.mtar",
+    "originalSha256": "2c959f84e490e22f53e6370ae75fa2a0d0a5e02b0396294d6fc052547859c19b",
+    "originalAbsent": false,
+    "payloadSha256": "5ab554b144dbce1fc224a50333722b8eb4431e51ff0d693113cbf7cca5a1b30b",
+    "payloadBytes": 247552
+  },
+  {
+    "target": "assets/mtar/jp/00023291.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "2d3e54b7d8687391943467c443adcdf74b62a10e7e49051131d930da9e2ed12e",
+    "payloadBytes": 329392
+  },
+  {
+    "target": "assets/mtar/jp/00025bb7.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "30d68ff70540972c1f79e03a63b90ce9daffb5a25399e27782507f3d8f0d2ed9",
+    "payloadBytes": 296752
+  },
+  {
+    "target": "assets/mtar/jp/0002614b.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/jp/00027945.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "7aab5c8f94f45b9964a1c109919afab091c9873d4d81bfe7a8d91cf31d6f1c05",
+    "payloadBytes": 372272
+  },
+  {
+    "target": "assets/mtar/jp/00027ef8.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "e39312f09d86235dd299b6ce1f92f7c4133459635cbfd5a93e1d4e069466bf15",
+    "payloadBytes": 322016
+  },
+  {
+    "target": "assets/mtar/jp/00201199.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "e39312f09d86235dd299b6ce1f92f7c4133459635cbfd5a93e1d4e069466bf15",
+    "payloadBytes": 322016
+  },
+  {
+    "target": "assets/mtar/jp/00215251.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/jp/0046e2cb.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "26080d8e823680e71d1a6f976711e66c7c9549e5d11e6547b3be8b2a96b727fd",
+    "payloadBytes": 301040
+  },
+  {
+    "target": "assets/mtar/jp/00482b59.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/jp/00482b59_slot_weapons-pipogun.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/jp/0048e32b.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "d9f22f45af0bd9edf61c5c971cf24094182381fa399aa8fa03d0ebbec1543086",
+    "payloadBytes": 286928
+  },
+  {
+    "target": "assets/mtar/jp/004963a5.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/jp/004963a5_slot_weapons-coltgave_custom.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/jp/004c4af2.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/jp/0051525f.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/jp/005ea57b.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "ee728da6f11384796283bea111b7b39c17f969c3d7b067db7d231261c392385e",
+    "payloadBytes": 289808
+  },
+  {
+    "target": "assets/mtar/jp/006891cc.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "fca9357a78602619776a57bb84748162536e6c40773f4b9270277ba47c25bd22",
+    "payloadBytes": 816432
+  },
+  {
+    "target": "assets/mtar/jp/006bc12e.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "d9f22f45af0bd9edf61c5c971cf24094182381fa399aa8fa03d0ebbec1543086",
+    "payloadBytes": 286928
+  },
+  {
+    "target": "assets/mtar/jp/006bc12e_slot_weapons-knife.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "d9f22f45af0bd9edf61c5c971cf24094182381fa399aa8fa03d0ebbec1543086",
+    "payloadBytes": 286928
+  },
+  {
+    "target": "assets/mtar/jp/006c745a.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "2d3e54b7d8687391943467c443adcdf74b62a10e7e49051131d930da9e2ed12e",
+    "payloadBytes": 329392
+  },
+  {
+    "target": "assets/mtar/jp/00914f09.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/jp/00ad99ca.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "26080d8e823680e71d1a6f976711e66c7c9549e5d11e6547b3be8b2a96b727fd",
+    "payloadBytes": 301040
+  },
+  {
+    "target": "assets/mtar/jp/00bad929.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "e04512639ade5599018363f317f142f12638349be31cc0b9c12ef803d16e38eb",
+    "payloadBytes": 288016
+  },
+  {
+    "target": "assets/mtar/jp/00c8b59b.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/jp/00ccbff6.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "26080d8e823680e71d1a6f976711e66c7c9549e5d11e6547b3be8b2a96b727fd",
+    "payloadBytes": 301040
+  },
+  {
+    "target": "assets/mtar/jp/00d14e46.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/jp/00d791ea.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "64d8b088cdd0fd3e5458296e545d93b96630892a2009a9067fce29a6959338b0",
+    "payloadBytes": 303760
+  },
+  {
+    "target": "assets/mtar/jp/00f8e660.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/jp/00fc64d1.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "5ab554b144dbce1fc224a50333722b8eb4431e51ff0d693113cbf7cca5a1b30b",
+    "payloadBytes": 247552
+  },
+  {
+    "target": "assets/mtar/sp/00023291.mtar",
+    "originalSha256": "6c94a613f5d1475ff6e8c549ac0941855095864413e9d25cacfa9e8f2b6902a4",
+    "originalAbsent": false,
+    "payloadSha256": "2d3e54b7d8687391943467c443adcdf74b62a10e7e49051131d930da9e2ed12e",
+    "payloadBytes": 329392
+  },
+  {
+    "target": "assets/mtar/sp/00025bb7.mtar",
+    "originalSha256": "b06f715cc1f993191c2d8eae837dd8fe0b3e989ce12d6a6d869266461b17cda9",
+    "originalAbsent": false,
+    "payloadSha256": "30d68ff70540972c1f79e03a63b90ce9daffb5a25399e27782507f3d8f0d2ed9",
+    "payloadBytes": 296752
+  },
+  {
+    "target": "assets/mtar/sp/0002614b.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/sp/00027945.mtar",
+    "originalSha256": "167e92c4853d44ab606b5acba308103dd09c53d5601b4a39404a709d63e75d03",
+    "originalAbsent": false,
+    "payloadSha256": "7aab5c8f94f45b9964a1c109919afab091c9873d4d81bfe7a8d91cf31d6f1c05",
+    "payloadBytes": 372272
+  },
+  {
+    "target": "assets/mtar/sp/00027ef8.mtar",
+    "originalSha256": "f21ef5bceabb92f236983c2f40b7b5f6345c7f90609a929d35cbfcab852de0ca",
+    "originalAbsent": false,
+    "payloadSha256": "e39312f09d86235dd299b6ce1f92f7c4133459635cbfd5a93e1d4e069466bf15",
+    "payloadBytes": 322016
+  },
+  {
+    "target": "assets/mtar/sp/00201199.mtar",
+    "originalSha256": "f21ef5bceabb92f236983c2f40b7b5f6345c7f90609a929d35cbfcab852de0ca",
+    "originalAbsent": false,
+    "payloadSha256": "e39312f09d86235dd299b6ce1f92f7c4133459635cbfd5a93e1d4e069466bf15",
+    "payloadBytes": 322016
+  },
+  {
+    "target": "assets/mtar/sp/00215251.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/sp/0046e2cb.mtar",
+    "originalSha256": "a032de7fca2e4b59b575b0103d9092b54b39c88e9712512e2947c62c69316002",
+    "originalAbsent": false,
+    "payloadSha256": "26080d8e823680e71d1a6f976711e66c7c9549e5d11e6547b3be8b2a96b727fd",
+    "payloadBytes": 301040
+  },
+  {
+    "target": "assets/mtar/sp/00482b59.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/sp/00482b59_slot_weapons-pipogun.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/sp/0048e32b.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "d9f22f45af0bd9edf61c5c971cf24094182381fa399aa8fa03d0ebbec1543086",
+    "payloadBytes": 286928
+  },
+  {
+    "target": "assets/mtar/sp/004963a5.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/sp/004963a5_slot_weapons-coltgave_custom.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/sp/004c4af2.mtar",
+    "originalSha256": "f57de9a810a32ffa8dfa47f5e81eb240d32e9f829948ece1c0df89c7e3e05dab",
+    "originalAbsent": false,
+    "payloadSha256": "8aeee6bfb25a49cfc1b164acd05addd9b91b531d5a6df371025fdb27ef0a6396",
+    "payloadBytes": 352864
+  },
+  {
+    "target": "assets/mtar/sp/0051525f.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/sp/005ea57b.mtar",
+    "originalSha256": "e40f14070b86ca2ba32d0f7362bffe70dd2684fe1a5dc4cfa057412aa9fc3bdb",
+    "originalAbsent": false,
+    "payloadSha256": "ee728da6f11384796283bea111b7b39c17f969c3d7b067db7d231261c392385e",
+    "payloadBytes": 289808
+  },
+  {
+    "target": "assets/mtar/sp/006891cc.mtar",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "fca9357a78602619776a57bb84748162536e6c40773f4b9270277ba47c25bd22",
+    "payloadBytes": 816432
+  },
+  {
+    "target": "assets/mtar/sp/006bc12e.mtar",
+    "originalSha256": "9e64283807672695bef9bc1345574a4031da4dc32b2253663e9b67fe06c547da",
+    "originalAbsent": false,
+    "payloadSha256": "d9f22f45af0bd9edf61c5c971cf24094182381fa399aa8fa03d0ebbec1543086",
+    "payloadBytes": 286928
+  },
+  {
+    "target": "assets/mtar/sp/006bc12e_slot_weapons-knife.mtar",
+    "originalSha256": "9e64283807672695bef9bc1345574a4031da4dc32b2253663e9b67fe06c547da",
+    "originalAbsent": false,
+    "payloadSha256": "d9f22f45af0bd9edf61c5c971cf24094182381fa399aa8fa03d0ebbec1543086",
+    "payloadBytes": 286928
+  },
+  {
+    "target": "assets/mtar/sp/006c745a.mtar",
+    "originalSha256": "6c94a613f5d1475ff6e8c549ac0941855095864413e9d25cacfa9e8f2b6902a4",
+    "originalAbsent": false,
+    "payloadSha256": "2d3e54b7d8687391943467c443adcdf74b62a10e7e49051131d930da9e2ed12e",
+    "payloadBytes": 329392
+  },
+  {
+    "target": "assets/mtar/sp/00914f09.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/sp/00ad99ca.mtar",
+    "originalSha256": "a032de7fca2e4b59b575b0103d9092b54b39c88e9712512e2947c62c69316002",
+    "originalAbsent": false,
+    "payloadSha256": "26080d8e823680e71d1a6f976711e66c7c9549e5d11e6547b3be8b2a96b727fd",
+    "payloadBytes": 301040
+  },
+  {
+    "target": "assets/mtar/sp/00bad929.mtar",
+    "originalSha256": "d0d258441b6ff5e7a85a292dfa1d1680575787f1fb972a2aef5aa1084a3eb357",
+    "originalAbsent": false,
+    "payloadSha256": "e04512639ade5599018363f317f142f12638349be31cc0b9c12ef803d16e38eb",
+    "payloadBytes": 288016
+  },
+  {
+    "target": "assets/mtar/sp/00c8b59b.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/sp/00ccbff6.mtar",
+    "originalSha256": "a032de7fca2e4b59b575b0103d9092b54b39c88e9712512e2947c62c69316002",
+    "originalAbsent": false,
+    "payloadSha256": "26080d8e823680e71d1a6f976711e66c7c9549e5d11e6547b3be8b2a96b727fd",
+    "payloadBytes": 301040
+  },
+  {
+    "target": "assets/mtar/sp/00d14e46.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/sp/00d791ea.mtar",
+    "originalSha256": "4f71de79ecd364b1bdfbbd18c331b4ed46604f8036f4aa2ab9b088a3d313c707",
+    "originalAbsent": false,
+    "payloadSha256": "64d8b088cdd0fd3e5458296e545d93b96630892a2009a9067fce29a6959338b0",
+    "payloadBytes": 303760
+  },
+  {
+    "target": "assets/mtar/sp/00f8e660.mtar",
+    "originalSha256": "fe6849ef7a36ccb91419daf45904b3a7147540ee367a4cdbf6036a4602e2ae94",
+    "originalAbsent": false,
+    "payloadSha256": "f6bc0c64d382368190cda37c5b087537fd5ac4044076f25bf94bcd97d50d4ac4",
+    "payloadBytes": 319776
+  },
+  {
+    "target": "assets/mtar/sp/00fc64d1.mtar",
+    "originalSha256": "2c959f84e490e22f53e6370ae75fa2a0d0a5e02b0396294d6fc052547859c19b",
+    "originalAbsent": false,
+    "payloadSha256": "5ab554b144dbce1fc224a50333722b8eb4431e51ff0d693113cbf7cca5a1b30b",
+    "payloadBytes": 247552
+  },
+  {
+    "target": "assets/mtar/us/006891cc.mtar",
+    "originalSha256": "fc021759a2b21a759c724512a44462db13361f6fe22b74c2860df632b4f0a253",
+    "originalAbsent": false,
+    "payloadSha256": "fca9357a78602619776a57bb84748162536e6c40773f4b9270277ba47c25bd22",
+    "payloadBytes": 816432
+  },
+  {
+    "target": "mgs3crouchwalk.asi",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "f2db4bf4ca9753ef88062cde4172df18a40998a092c6d53bdc3ada784fbcb6fd",
+    "payloadBytes": 64000
+  },
+  {
+    "target": "mgs3crouchwalk.ini",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "8085ca3e5696342b7f3b7efd6cd212042c1f3b61f45040ea38b4c7291e6cdd51",
+    "payloadBytes": 104
+  }
+]

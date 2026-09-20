@@ -571,7 +571,7 @@ func readZipEntry(entry *zip.File, limit int64) ([]byte, error) {
 }
 
 func fillOrCheckPayload(file *File, data []byte, authoring bool) error {
-	if profile.AddedTarget(file.Target) == nil {
+	if profile.PluginTarget(file.Target) == nil || profile.LoaderTarget(file.Target) == nil {
 		if len(data) == 0 {
 			return errors.New("plugin payload is empty")
 		}
@@ -653,7 +653,7 @@ func isZeroHash(s string) bool {
 }
 
 func validateManifest(m *Manifest, authoring bool) error {
-	if m.SchemaVersion != 1 && m.SchemaVersion != 2 && m.SchemaVersion != 3 {
+	if m.SchemaVersion != 1 && m.SchemaVersion != 2 && m.SchemaVersion != 3 && m.SchemaVersion != 4 {
 		return fmt.Errorf("unsupported schemaVersion %d", m.SchemaVersion)
 	}
 	if !idPattern.MatchString(m.ID) {
@@ -673,6 +673,9 @@ func validateManifest(m *Manifest, authoring bool) error {
 	}
 	if len(m.Files) > maxMappings {
 		return fmt.Errorf("package has more than %d mappings", maxMappings)
+	}
+	if m.SchemaVersion == 4 {
+		return validateCrouchManifest(m)
 	}
 	if m.SchemaVersion == 3 && (m.ID != profile.LoaderID || m.Version != profile.LoaderVersion || len(m.Files) != len(profile.LoaderFiles)) {
 		return errors.New("schemaVersion 3 requires the pinned asi-loader package identity and complete target set")
@@ -735,6 +738,53 @@ func validateManifest(m *Manifest, authoring bool) error {
 	return nil
 }
 
+func validateCrouchManifest(m *Manifest) error {
+	if m.ID != profile.CrouchID || m.Version != profile.CrouchVersion {
+		return errors.New("schemaVersion 4 requires the pinned crouch-walk package identity")
+	}
+	pinned := profile.CrouchFiles()
+	if len(m.Files) != len(pinned) {
+		return errors.New("schemaVersion 4 requires the complete pinned crouch-walk target set")
+	}
+	wanted := make(map[string]profile.CrouchFile, len(pinned))
+	for _, file := range pinned {
+		if _, exists := wanted[file.Target]; exists {
+			return fmt.Errorf("duplicate pinned crouch target %q", file.Target)
+		}
+		wanted[file.Target] = file
+	}
+	seen := make(map[string]struct{}, len(m.Files))
+	sources := make(map[string]struct{}, len(m.Files))
+	for i := range m.Files {
+		f := &m.Files[i]
+		if err := validatePayloadPath(f.Source); err != nil {
+			return fmt.Errorf("files[%d].source: %w", i, err)
+		}
+		if f.Source != "payload/"+f.Target {
+			return fmt.Errorf("files[%d].source must be payload/<target>", i)
+		}
+		file, ok := wanted[f.Target]
+		if !ok {
+			return fmt.Errorf("files[%d].target is not a pinned crouch-walk target: %q", i, f.Target)
+		}
+		if _, exists := seen[f.Target]; exists {
+			return fmt.Errorf("duplicate target %q", f.Target)
+		}
+		seen[f.Target] = struct{}{}
+		key := strings.ToLower(f.Source)
+		if _, exists := sources[key]; exists {
+			return fmt.Errorf("duplicate source %q", f.Source)
+		}
+		sources[key] = struct{}{}
+		if f.OriginalSHA256 != file.OriginalSHA256 || f.OriginalAbsent != file.OriginalAbsent || f.PayloadSHA256 != file.PayloadSHA256 || f.PayloadBytes != file.PayloadBytes {
+			return fmt.Errorf("files[%d]: pinned crouch-walk origin, payload hash, or size differs", i)
+		}
+	}
+	if len(seen) != len(wanted) {
+		return errors.New("schemaVersion 4 is missing a pinned crouch-walk target")
+	}
+	return nil
+}
 func pathDir(path string) string {
 	if i := strings.LastIndexByte(path, '/'); i >= 0 {
 		return path[:i]

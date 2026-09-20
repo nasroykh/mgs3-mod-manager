@@ -22,6 +22,14 @@ func TestParsingContract(t *testing.T) {
 			t.Errorf("accepted %v", args)
 		}
 	}
+	for _, args := range [][]string{{"import-crouch"}, {"import-crouch", "archive.zip"}, {"import-crouch", "a", "b", "--out", "x.zip"}} {
+		if _, err := parse(args); err == nil {
+			t.Errorf("accepted %v", args)
+		}
+	}
+	if p, err := parse([]string{"import-crouch", "archive.zip", "--out", "out.zip", "--dry-run", "--json"}); err != nil || p.command != "import-crouch" || !p.options.DryRun || p.out != "out.zip" {
+		t.Fatalf("import-crouch parse: %#v %v", p, err)
+	}
 }
 
 func TestPackDryRunChecksOutputWithoutWrites(t *testing.T) {

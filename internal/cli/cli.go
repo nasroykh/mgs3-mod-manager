@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"mgs3mod/internal/crouchimport"
 	"mgs3mod/internal/manager"
 	"mgs3mod/internal/packagefmt"
 	"sort"
@@ -19,6 +20,7 @@ Commands:
   doctor                         Inspect this installation (read only)
   init                           Initialize manager state
   pack <folder> --out <zip>       Create a validated local package
+  import-crouch <upstream.zip> --out <zip>  Convert pinned offline crouch archive
   add <zip-or-folder>             Store a package, disabled
   list | status | verify         Inspect packages, state, or integrity
   enable <id> | disable <id>      Apply a mod or restore its original files
@@ -103,7 +105,7 @@ func parse(args []string) (parsed, error) {
 		return p, fmt.Errorf("command required")
 	}
 	p.command = pos[0]
-	arity := map[string]int{"doctor": 0, "init": 0, "pack": 1, "add": 1, "list": 0, "status": 0, "verify": 0, "enable": 1, "disable": 1, "remove": 1, "restore": 0, "recover": 0}
+	arity := map[string]int{"doctor": 0, "init": 0, "pack": 1, "import-crouch": 1, "add": 1, "list": 0, "status": 0, "verify": 0, "enable": 1, "disable": 1, "remove": 1, "restore": 0, "recover": 0}
 	n, ok := arity[p.command]
 	if !ok {
 		return p, fmt.Errorf("unknown command %s", p.command)
@@ -120,8 +122,8 @@ func parse(args []string) (parsed, error) {
 	if (p.command == "restore") != p.baseline {
 		return p, fmt.Errorf("restore requires --baseline; no other command accepts it")
 	}
-	if (p.command == "pack") != (p.out != "") {
-		return p, fmt.Errorf("pack requires --out; no other command accepts it")
+	if (p.command == "pack" || p.command == "import-crouch") != (p.out != "") {
+		return p, fmt.Errorf("%s requires --out; no other command accepts it", p.command)
 	}
 	if len(p.options.RestoreMissing) > 0 && p.command != "recover" {
 		return p, fmt.Errorf("--restore-missing requires recover")
@@ -150,9 +152,11 @@ func Run(args []string, stdout, stderr io.Writer, m *manager.Manager) int {
 			fmt.Fprint(stdout, Help)
 		}
 		return 0
-	} else if p.command == "pack" {
+	} else if p.command == "pack" || p.command == "import-crouch" {
 		var pkg *packagefmt.Package
-		if p.options.DryRun {
+		if p.command == "import-crouch" {
+			pkg, err = crouchimport.Convert(p.arg, p.out, p.options.DryRun)
+		} else if p.options.DryRun {
 			pkg, err = packagefmt.Load(p.arg, true)
 			if err == nil {
 				err = packagefmt.CheckOutput(p.out)

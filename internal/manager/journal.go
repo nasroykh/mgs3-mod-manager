@@ -48,7 +48,7 @@ func validState(st State) error {
 		}
 	}
 	for key, b := range st.Baselines {
-		targetErr := profile.Target(b.Target)
+		targetErr := profile.ReplacementTarget(b.Target)
 		if b.Absent {
 			targetErr = profile.AddedTarget(b.Target)
 		}
@@ -419,7 +419,7 @@ func (s *session) validateAuthorization(dir string, p plan, ready, committed boo
 	seen := map[string]bool{}
 	for _, target := range record.Paths {
 		key := profile.Key(target)
-		if profile.Target(target) != nil || seen[key] {
+		if profile.ReplacementTarget(target) != nil || seen[key] {
 			return fmt.Errorf("invalid or duplicate authorized target")
 		}
 		seen[key] = true

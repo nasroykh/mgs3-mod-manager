@@ -59,7 +59,7 @@ func (s *session) verifyStateIgnoring(st State, targets bool, ignored map[string
 func (m *Manager) Run(command, arg string, opt Options) (Result, error) {
 	result := Result{Command: command, DryRun: opt.DryRun}
 	for _, target := range opt.RestoreMissing {
-		if profile.Target(target) != nil {
+		if profile.ReplacementTarget(target) != nil {
 			return result, fail(2, "invalid missing-file target", target)
 		}
 	}

@@ -333,7 +333,7 @@ func (s *session) recover(h history, opt Options, compatible bool) ([]string, er
 	}
 	auth := map[string]bool{}
 	for _, v := range opt.RestoreMissing {
-		if profile.Target(v) != nil {
+		if profile.ReplacementTarget(v) != nil {
 			return nil, fail(2, "invalid missing-file target", v)
 		}
 		key := profile.Key(v)
@@ -358,7 +358,7 @@ func (s *session) recover(h history, opt Options, compatible bool) ([]string, er
 			return nil, fail(5, "invalid missing-file authorization")
 		}
 		for _, v := range old.Paths {
-			if profile.Target(v) != nil {
+			if profile.ReplacementTarget(v) != nil {
 				return nil, fail(5, "invalid authorization target")
 			}
 			allowedExisting[profile.Key(v)] = true

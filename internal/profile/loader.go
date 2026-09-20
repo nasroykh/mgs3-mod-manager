@@ -30,5 +30,8 @@ func AddedTarget(path string) error {
 	if PluginTarget(path) == nil || LoaderTarget(path) == nil {
 		return nil
 	}
+	if file, ok := CrouchFileFor(path); ok && file.OriginalAbsent {
+		return nil
+	}
 	return fmt.Errorf("unsupported added target: %q", path)
 }

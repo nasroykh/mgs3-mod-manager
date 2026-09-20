@@ -1,4 +1,4 @@
-// Package cli contains the fixed-installation command interface.
+// Package cli contains the MGS3 command interface.
 package cli
 
 import (
@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-const Help = `mgs3mod — local MGS3 texture mod manager
+const Help = `mgs3mod — MGS3 texture and ASI mod manager
 
 Commands:
   doctor                         Inspect this installation (read only)
@@ -28,6 +28,7 @@ Commands:
   recover --restore-missing <relative-target> [--restore-missing <target> ...]
 
 Options:
+  --game-root <folder>  Select an installation of the supported game build
   --json       Emit one JSON result, including failures
   --dry-run    Validate mutations without writing any files
   --help       Show help without changing state
@@ -36,13 +37,14 @@ Missing files may have been deleted externally. Plain recover never recreates
 them. Each --restore-missing target requires valid unresolved apply intent and
 matching core fingerprints; the flag cannot overwrite existing files.
 Baseline means captured local bytes, not factory settings. Close MGS3 and its
-launcher before changing managed textures. Root and version are compiled in.
+launcher before changing managed files. Game fingerprints remain mandatory.
+Without --game-root, the original local installation path is used.
 `
 
 type parsed struct {
-	command, arg, out    string
-	json, help, baseline bool
-	options              manager.Options
+	command, arg, out, root string
+	json, help, baseline    bool
+	options                 manager.Options
 }
 
 type repeatedStrings []string
@@ -59,6 +61,7 @@ func parse(args []string) (parsed, error) {
 	flags.BoolVar(&p.options.DryRun, "dry-run", false, "validate without writes")
 	flags.BoolVar(&p.baseline, "baseline", false, "restore the local baseline")
 	flags.StringVar(&p.out, "out", "", "output package")
+	flags.StringVar(&p.root, "game-root", "", "game installation directory")
 	flags.Var((*repeatedStrings)(&p.options.RestoreMissing), "restore-missing", "explicit missing target")
 	pos := []string{}
 	options := []string{}
@@ -78,7 +81,7 @@ func parse(args []string) (parsed, error) {
 		}
 		seen[v] = true
 		options = append(options, v)
-		if v == "--out" || v == "--restore-missing" {
+		if v == "--out" || v == "--restore-missing" || v == "--game-root" {
 			if i+1 == len(args) || strings.HasPrefix(args[i+1], "--") {
 				return p, fmt.Errorf("%s needs a value", v)
 			}
@@ -88,6 +91,9 @@ func parse(args []string) (parsed, error) {
 	}
 	if err := flags.Parse(options); err != nil {
 		return p, err
+	}
+	if seen["--game-root"] && strings.TrimSpace(p.root) == "" {
+		return p, fmt.Errorf("--game-root needs a nonempty directory")
 	}
 	if len(pos) == 0 {
 		if p.help || len(args) == 0 {
@@ -164,7 +170,12 @@ func Run(args []string, stdout, stderr io.Writer, m *manager.Manager) int {
 			}
 		}
 	} else {
-		result, err = m.Run(p.command, p.arg, p.options)
+		if p.root != "" {
+			m, err = m.WithRoot(p.root)
+		}
+		if err == nil {
+			result, err = m.Run(p.command, p.arg, p.options)
+		}
 	}
 	code := 0
 	var detail *manager.Error

@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/sha256"
+	"debug/pe"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -55,6 +56,7 @@ type File struct {
 	Source         string `json:"source"`
 	Target         string `json:"target"`
 	OriginalSHA256 string `json:"originalSha256"`
+	OriginalAbsent bool   `json:"originalAbsent,omitempty"`
 	PayloadSHA256  string `json:"payloadSha256"`
 	PayloadBytes   int64  `json:"payloadBytes"`
 }
@@ -569,6 +571,50 @@ func readZipEntry(entry *zip.File, limit int64) ([]byte, error) {
 }
 
 func fillOrCheckPayload(file *File, data []byte, authoring bool) error {
+	if profile.AddedTarget(file.Target) == nil {
+		if len(data) == 0 {
+			return errors.New("plugin payload is empty")
+		}
+		parsed, err := pe.NewFile(bytes.NewReader(data))
+		if err != nil {
+			return fmt.Errorf("plugin payload is not a valid PE: %w", err)
+		}
+		defer parsed.Close()
+		if parsed.FileHeader.Machine != pe.IMAGE_FILE_MACHINE_AMD64 {
+			return fmt.Errorf("plugin payload machine is %v, want AMD64", parsed.FileHeader.Machine)
+		}
+		if parsed.FileHeader.Characteristics&pe.IMAGE_FILE_DLL == 0 {
+			return errors.New("plugin payload is not a DLL")
+		}
+		header, ok := parsed.OptionalHeader.(*pe.OptionalHeader64)
+		if !ok {
+			return errors.New("plugin payload is not PE32+")
+		}
+		if header.AddressOfEntryPoint == 0 || header.SizeOfCode == 0 || len(parsed.Sections) == 0 {
+			return errors.New("plugin payload has no executable entry section")
+		}
+		entryInSection := false
+		for _, section := range parsed.Sections {
+			end := uint64(section.Offset) + uint64(section.Size)
+			// Zero-sized sections with zero raw offset are legitimate .bss-style
+			// uninitialized data and have no bytes to validate.
+			if section.Size == 0 {
+				if section.Offset != 0 {
+					return errors.New("plugin payload section exceeds file bounds")
+				}
+			} else if end > uint64(len(data)) {
+				return errors.New("plugin payload section exceeds file bounds")
+			}
+			virtualEnd := uint64(section.VirtualAddress) + uint64(section.VirtualSize)
+			entry := uint64(header.AddressOfEntryPoint)
+			if section.Characteristics&pe.IMAGE_SCN_MEM_EXECUTE != 0 && entry >= uint64(section.VirtualAddress) && entry < virtualEnd && entry-uint64(section.VirtualAddress) < uint64(section.Size) {
+				entryInSection = true
+			}
+		}
+		if !entryInSection {
+			return errors.New("plugin payload entry point is outside executable file-backed sections")
+		}
+	}
 	hash := sha256.Sum256(data)
 	want := hex.EncodeToString(hash[:])
 	if file.PayloadBytes < 0 || file.PayloadBytes > maxPayloadBytes {
@@ -607,7 +653,7 @@ func isZeroHash(s string) bool {
 }
 
 func validateManifest(m *Manifest, authoring bool) error {
-	if m.SchemaVersion != 1 {
+	if m.SchemaVersion != 1 && m.SchemaVersion != 2 && m.SchemaVersion != 3 {
 		return fmt.Errorf("unsupported schemaVersion %d", m.SchemaVersion)
 	}
 	if !idPattern.MatchString(m.ID) {
@@ -628,6 +674,9 @@ func validateManifest(m *Manifest, authoring bool) error {
 	if len(m.Files) > maxMappings {
 		return fmt.Errorf("package has more than %d mappings", maxMappings)
 	}
+	if m.SchemaVersion == 3 && (m.ID != profile.LoaderID || m.Version != profile.LoaderVersion || len(m.Files) != len(profile.LoaderFiles)) {
+		return errors.New("schemaVersion 3 requires the pinned asi-loader package identity and complete target set")
+	}
 	targets := make(map[string]string, len(m.Files))
 	sources := make(map[string]string, len(m.Files))
 	for i := range m.Files {
@@ -635,8 +684,30 @@ func validateManifest(m *Manifest, authoring bool) error {
 		if err := validatePayloadPath(f.Source); err != nil {
 			return fmt.Errorf("files[%d].source: %w", i, err)
 		}
-		if err := profile.Target(f.Target); err != nil {
-			return fmt.Errorf("files[%d].target: %w", i, err)
+		plugin := profile.PluginTarget(f.Target) == nil
+		loader := m.SchemaVersion == 3 && profile.LoaderTarget(f.Target) == nil
+		if m.SchemaVersion == 3 {
+			if !loader || !f.OriginalAbsent || f.OriginalSHA256 != "" || f.PayloadSHA256 != profile.LoaderSHA256 || f.PayloadBytes != profile.LoaderBytes {
+				return fmt.Errorf("files[%d]: loader target, absent origin, hash, or size differs from the pinned release", i)
+			}
+		}
+		if !plugin && !loader {
+			if err := profile.Target(f.Target); err != nil {
+				return fmt.Errorf("files[%d].target: %w", i, err)
+			}
+		}
+		if m.SchemaVersion == 1 && f.OriginalAbsent {
+			return fmt.Errorf("files[%d].originalAbsent is not allowed in schemaVersion 1", i)
+		}
+		if m.SchemaVersion == 1 && plugin {
+			return fmt.Errorf("files[%d].target: plugin targets require schemaVersion 2", i)
+		}
+		if m.SchemaVersion == 2 && plugin || loader {
+			if !f.OriginalAbsent || f.OriginalSHA256 != "" {
+				return fmt.Errorf("files[%d]: plugin target requires originalAbsent=true and empty originalSha256", i)
+			}
+		} else if f.OriginalAbsent || !hexPattern.MatchString(f.OriginalSHA256) {
+			return fmt.Errorf("files[%d].originalSha256 must be lowercase SHA-256", i)
 		}
 		key := profile.Key(f.Target)
 		if prior, exists := targets[key]; exists {
@@ -648,9 +719,6 @@ func validateManifest(m *Manifest, authoring bool) error {
 			return fmt.Errorf("duplicate source %q conflicts with %q", f.Source, prior)
 		}
 		sources[sourceKey] = f.Source
-		if !hexPattern.MatchString(f.OriginalSHA256) {
-			return fmt.Errorf("files[%d].originalSha256 must be lowercase SHA-256", i)
-		}
 		if f.PayloadBytes < 0 || f.PayloadBytes > maxPayloadBytes {
 			return fmt.Errorf("files[%d].payloadBytes out of range", i)
 		}
@@ -755,7 +823,7 @@ func validateJSONFieldNames(data []byte) error {
 		return nil // Decoder below reports the type error with field context.
 	}
 	fileFields := map[string]struct{}{
-		"source": {}, "target": {}, "originalSha256": {}, "payloadSha256": {}, "payloadBytes": {},
+		"source": {}, "target": {}, "originalSha256": {}, "originalAbsent": {}, "payloadSha256": {}, "payloadBytes": {},
 	}
 	for i, item := range items {
 		object, ok := item.(map[string]any)
@@ -764,6 +832,11 @@ func validateJSONFieldNames(data []byte) error {
 		}
 		if err := checkJSONObjectFields(object, fileFields, fmt.Sprintf("manifest.files[%d]", i)); err != nil {
 			return err
+		}
+		if schema, ok := root["schemaVersion"].(json.Number); ok && schema.String() == "1" {
+			if _, present := object["originalAbsent"]; present {
+				return fmt.Errorf("unknown field %q in manifest.files[%d] for schemaVersion 1", "originalAbsent", i)
+			}
 		}
 	}
 	return nil

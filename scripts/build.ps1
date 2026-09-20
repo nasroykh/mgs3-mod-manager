@@ -1,6 +1,7 @@
+param([string]$GameRoot = '')
 $ErrorActionPreference = 'Stop'
 $projectRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-$go = 'C:\Program Files\Go\bin\go.exe'
+$go = (Get-Command go -ErrorAction Stop).Source
 $env:GOTOOLCHAIN = 'local'
 $env:GOWORK = 'off'
 $env:GOOS = 'windows'
@@ -21,9 +22,11 @@ try {
     Invoke-CheckedGo mod verify
     Invoke-CheckedGo test ./...
     Invoke-CheckedGo vet ./...
-    Invoke-CheckedGo build -mod=readonly -trimpath -o ./dist/mgs3mod.exe ./cmd/mgs3mod
-    & './dist/mgs3mod.exe' doctor --json
-    if ($LASTEXITCODE -ne 0) { throw 'Installation check failed. Do not deploy this build.' }
+    Invoke-CheckedGo build -mod=readonly -buildvcs=false -trimpath -o ./dist/mgs3mod.exe ./cmd/mgs3mod
+    if ($GameRoot) {
+        & './dist/mgs3mod.exe' doctor --game-root $GameRoot --json
+        if ($LASTEXITCODE -ne 0) { throw 'Installation check failed. Do not deploy this build.' }
+    }
     $stream = [System.IO.File]::OpenRead((Join-Path $projectRoot 'dist/mgs3mod.exe'))
     $hasher = [System.Security.Cryptography.SHA256]::Create()
     try { $digest = [BitConverter]::ToString($hasher.ComputeHash($stream)).Replace('-', '').ToLowerInvariant() }

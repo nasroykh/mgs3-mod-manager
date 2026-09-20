@@ -49,6 +49,17 @@ func Target(path string) error {
 	return fmt.Errorf("target is outside approved texture prefixes: %q", path)
 }
 
+// PluginTarget permits only a root-level lowercase .asi plugin filename.
+func PluginTarget(path string) error {
+	if err := Path(path); err != nil {
+		return err
+	}
+	if strings.Contains(path, "/") || path != strings.ToLower(path) || !strings.HasSuffix(path, ".asi") || len(path) <= len(".asi") {
+		return fmt.Errorf("plugin target must be a root-level lowercase .asi filename: %q", path)
+	}
+	return nil
+}
+
 // Path validates canonical printable-ASCII Windows-relative syntax.
 func Path(path string) error {
 	if path == "" || strings.ContainsAny(path, `\\:`) || strings.HasPrefix(path, "/") || strings.HasSuffix(path, "/") {

@@ -9,15 +9,27 @@ import (
 	"mgs3mod/internal/transaction"
 	"mgs3mod/internal/winfs"
 	"os"
+	"path"
 	"sort"
 	"time"
 )
 
+func needsASILoader(st State) bool {
+	return enabledASI(st)
+}
+
 func (s *session) verifyState(st State, targets bool) error {
+	return s.verifyStateIgnoring(st, targets, nil)
+}
+
+func (s *session) verifyStateIgnoring(st State, targets bool, ignored map[string]bool) error {
 	if err := validState(st); err != nil {
 		return wrap(5, "invalid state", err)
 	}
 	for _, b := range st.Baselines {
+		if b.Absent {
+			continue
+		}
 		if err := s.expect(baseline(b.SHA256), b.SHA256); err != nil {
 			return wrap(5, "baseline corrupted", err)
 		}
@@ -33,7 +45,10 @@ func (s *session) verifyState(st State, targets bool) error {
 	}
 	if targets {
 		for key, hash := range expected(st) {
-			if err := s.expect(st.Baselines[key].Target, hash); err != nil {
+			if ignored[key] {
+				continue
+			}
+			if err := s.expectState(st.Baselines[key].Target, hash); err != nil {
 				return err
 			}
 		}
@@ -143,13 +158,26 @@ func (m *Manager) Run(command, arg string, opt Options) (Result, error) {
 		return result, nil
 	case "doctor", "status", "verify":
 		result.Message = "installation and managed state inspected"
-		if err = s.verifyState(h.state, command != "status"); err != nil {
+		ignore := map[string]bool(nil)
+		if needsASILoader(h.state) {
+			ignore = loaderTargetKeys()
+		}
+		if err = s.verifyStateIgnoring(h.state, command != "status", ignore); err != nil {
 			return result, err
 		}
 		if command == "status" {
 			result.Targets, err = s.inspectTargets(h.state)
 			if err != nil {
 				return result, err
+			}
+		}
+		if needsASILoader(h.state) {
+			if loaderErr := m.asiLoader(h.state); loaderErr != nil {
+				if command == "status" {
+					result.Issues = append(result.Issues, loaderErr.Error())
+				} else {
+					return result, loaderErr
+				}
 			}
 		}
 		if compatibleErr != nil {
@@ -168,7 +196,13 @@ func (m *Manager) Run(command, arg string, opt Options) (Result, error) {
 	}
 	conditional := command == "restore" && compatibleErr != nil
 	if !conditional {
-		if err = s.verifyState(h.state, true); err != nil {
+		ignore := map[string]bool(nil)
+		if command == "disable" || command == "remove" {
+			if mod, ok := h.state.Mods[arg]; ok && isASI(mod) {
+				ignore = loaderTargetKeys()
+			}
+		}
+		if err = s.verifyStateIgnoring(h.state, true, ignore); err != nil {
 			return result, err
 		}
 	}
@@ -186,9 +220,12 @@ func (m *Manager) Run(command, arg string, opt Options) (Result, error) {
 		inputs = map[string]input{}
 		changes := make([]change, 0, len(p.Changes))
 		for _, c := range p.Changes {
-			actual, _, e := s.hash(c.Path)
+			actual, absent, e := s.observe(c.Path)
 			if e != nil {
 				return result, wrapPath(4, "conditional restore target", c.Path, e)
+			}
+			if absent {
+				actual = ""
 			}
 			if actual != c.Before && actual != c.After {
 				return result, fail(4, "updated target cannot be restored", c.Path)
@@ -197,8 +234,12 @@ func (m *Manager) Run(command, arg string, opt Options) (Result, error) {
 				continue
 			}
 			changes = append(changes, c)
-			inputs[c.Before] = input{Path: c.Path}
-			inputs[c.After] = input{Path: baseline(c.After)}
+			if c.Before != "" {
+				inputs[c.Before] = input{Path: c.Path}
+			}
+			if c.After != "" {
+				inputs[c.After] = input{Path: baseline(c.After)}
+			}
 		}
 		p.Changes = changes
 		if err = validatePlan(*p, h.state, p.Sequence); err != nil {
@@ -287,7 +328,12 @@ func (s *session) preflightAccess(p plan) error {
 	}
 	for _, c := range p.Changes {
 		if c.Game {
-			if err := winfs.CheckReplaceAccess(s.m.config.Root, c.Path); err != nil {
+			if c.Before == "" {
+				parent := pathJoin(s.m.config.Root, path.Dir(c.Path))
+				if err := winfs.CheckCreateAccess(parent); err != nil {
+					return wrapPath(1, "target creation denied", c.Path, err)
+				}
+			} else if err := winfs.CheckReplaceAccess(s.m.config.Root, c.Path); err != nil {
 				return wrapPath(1, "target replacement denied", c.Path, err)
 			}
 		}
@@ -319,11 +365,11 @@ func (s *session) inspectTargets(st State) ([]TargetStatus, error) {
 	sort.Strings(keys)
 	for _, key := range keys {
 		path := st.Baselines[key].Target
-		actual, _, err := s.hash(path)
-		item := TargetStatus{Path: path, Owner: owners[key], ExpectedSHA256: hashes[key], ActualSHA256: actual}
+		actual, absent, err := s.observe(path)
+		item := TargetStatus{Path: path, Owner: owners[key], ExpectedSHA256: hashes[key], ExpectedAbsent: hashes[key] == "", ActualSHA256: actual, ActualAbsent: absent}
 		if err != nil {
 			item.Issue = err.Error()
-		} else if actual != hashes[key] {
+		} else if absent != item.ExpectedAbsent || !absent && actual != hashes[key] {
 			item.Issue = "external drift"
 		}
 		if item.Issue != "" && first == nil {
@@ -367,15 +413,17 @@ func (s *session) requiredSpace(p plan, inputs map[string]input) (uint64, error)
 		} // Immutable transaction blob.
 	}
 	for _, c := range p.Changes {
-		size, ok := sizes[c.After]
-		if !ok {
-			return 0, fmt.Errorf("missing staged source")
+		if c.After != "" {
+			size, ok := sizes[c.After]
+			if !ok {
+				return 0, fmt.Errorf("missing staged source")
+			}
+			if err := add(size); err != nil {
+				return 0, err
+			} // One apply stage per path, even for duplicate content.
 		}
-		if err := add(size); err != nil {
-			return 0, err
-		} // One apply stage per path, even for duplicate content.
 		if c.Before != "" {
-			size, ok = sizes[c.Before]
+			size, ok := sizes[c.Before]
 			if !ok {
 				return 0, fmt.Errorf("missing recovery source")
 			}
@@ -419,11 +467,11 @@ func (s *session) build(h history, command, arg string) (*plan, map[string]input
 		for _, f := range pkg.Manifest.Files {
 			key := profile.Key(f.Target)
 			if b, ok := next.Baselines[key]; ok {
-				if b.SHA256 != f.OriginalSHA256 {
+				if b.Absent != f.OriginalAbsent || b.SHA256 != f.OriginalSHA256 {
 					return nil, nil, fail(4, "package original differs from captured baseline", f.Target)
 				}
 			} else {
-				if err = s.expect(f.Target, f.OriginalSHA256); err != nil {
+				if err = s.expectState(f.Target, f.OriginalSHA256); err != nil {
 					return nil, nil, err
 				}
 			}
@@ -446,7 +494,20 @@ func (s *session) build(h history, command, arg string) (*plan, map[string]input
 		if command == "enable" && mod.Enabled || command == "disable" && !mod.Enabled {
 			return nil, nil, nil
 		}
+		if isLoader(mod) && command != "enable" && enabledASI(next) {
+			return nil, nil, fail(4, "enabled ASI packages depend on the managed loader", arg)
+		}
 		if command == "enable" {
+			if isLoader(mod) {
+				if err := s.m.defaultLoaderConfig(); err != nil {
+					return nil, nil, err
+				}
+			}
+			if isASI(mod) {
+				if err := s.m.asiLoader(next); err != nil {
+					return nil, nil, err
+				}
+			}
 			owners := map[string]string{}
 			for id, m := range next.Mods {
 				if m.Enabled {
@@ -460,22 +521,28 @@ func (s *session) build(h history, command, arg string) (*plan, map[string]input
 				if owner := owners[key]; owner != "" {
 					return nil, nil, fail(4, "target owned by "+owner, f.Target)
 				}
-				if err := s.expect(f.Target, f.OriginalSHA256); err != nil {
+				if err := s.expectState(f.Target, f.OriginalSHA256); err != nil {
 					return nil, nil, err
 				}
 				if b, ok := next.Baselines[key]; ok {
-					if b.SHA256 != f.OriginalSHA256 {
+					if b.Absent != f.OriginalAbsent || b.SHA256 != f.OriginalSHA256 {
 						return nil, nil, fail(4, "baseline mismatch", f.Target)
 					}
 				} else {
-					_, n, err := s.hash(f.Target)
-					if err != nil {
-						return nil, nil, err
+					var n int64
+					if !f.OriginalAbsent {
+						_, size, hashErr := s.hash(f.Target)
+						if hashErr != nil {
+							return nil, nil, hashErr
+						}
+						n = size
 					}
-					b := Baseline{f.Target, f.OriginalSHA256, n, time.Now().UTC().Format(time.RFC3339Nano), profile.ID}
+					b := Baseline{Target: f.Target, SHA256: f.OriginalSHA256, Bytes: n, Captured: time.Now().UTC().Format(time.RFC3339Nano), Profile: profile.ID, Absent: f.OriginalAbsent}
 					next.Baselines[key] = b
-					newBaselines = append(newBaselines, inventory{Path: baseline(b.SHA256), SHA256: b.SHA256, Bytes: b.Bytes, Target: b.Target})
-					inputs[b.SHA256] = input{Path: b.Target}
+					if !b.Absent {
+						newBaselines = append(newBaselines, inventory{Path: baseline(b.SHA256), SHA256: b.SHA256, Bytes: b.Bytes, Target: b.Target})
+						inputs[b.SHA256] = input{Path: b.Target}
+					}
 				}
 			}
 			mod.Enabled = true
@@ -513,8 +580,12 @@ func (s *session) build(h history, command, arg string) (*plan, map[string]input
 		}
 		target := next.Baselines[key].Target
 		changes = append(changes, change{target, old, hash, true})
-		inputs[old] = input{Path: target}
-		if hash == next.Baselines[key].SHA256 {
+		if old != "" {
+			inputs[old] = input{Path: target}
+		}
+		if hash == "" {
+			// An absent baseline is represented directly by the change; it has no blob.
+		} else if hash == next.Baselines[key].SHA256 {
 			inputs[hash] = input{Path: baseline(hash)}
 		} else {
 			found := false

@@ -32,6 +32,7 @@ type Baseline struct {
 	Bytes    int64  `json:"bytes"`
 	Captured string `json:"captured"`
 	Profile  string `json:"profile"`
+	Absent   bool   `json:"absent,omitempty"`
 }
 type Mod struct {
 	Manifest packagefmt.Manifest `json:"manifest"`
@@ -65,8 +66,10 @@ type Result struct {
 type TargetStatus struct {
 	Path           string `json:"path"`
 	Owner          string `json:"owner,omitempty"`
-	ExpectedSHA256 string `json:"expectedSha256"`
+	ExpectedSHA256 string `json:"expectedSha256,omitempty"`
+	ExpectedAbsent bool   `json:"expectedAbsent,omitempty"`
 	ActualSHA256   string `json:"actualSha256,omitempty"`
+	ActualAbsent   bool   `json:"actualAbsent,omitempty"`
 	Issue          string `json:"issue,omitempty"`
 }
 type Options struct {
@@ -78,6 +81,7 @@ type Config struct {
 	Root           string
 	Core           []profile.Fingerprint
 	CheckProcesses func(string) error
+	CheckASILoader func(string) error
 	// Fault is injected only by internal synthetic tests. The CLI never exposes it.
 	Fault func(string) error
 	// CreateFile is an internal test seam. Production always uses exclusive os.Root creation.

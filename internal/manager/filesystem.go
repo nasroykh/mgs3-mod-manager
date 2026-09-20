@@ -110,6 +110,37 @@ func (s *session) expect(p, h string) error {
 	}
 	return nil
 }
+
+// observe returns the content hash of a regular file, or absent=true when the
+// path is safely missing. An empty expected hash is reserved for that missing
+// state and is never a file-content hash.
+func (s *session) observe(p string) (hash string, absent bool, err error) {
+	if !s.exists(p) {
+		if err := s.guard(p, true); err != nil {
+			return "", false, err
+		}
+		return "", true, nil
+	}
+	hash, _, err = s.hash(p)
+	return hash, false, err
+}
+
+func (s *session) expectState(p, h string) error {
+	actual, absent, err := s.observe(p)
+	if err != nil {
+		return wrapPath(4, "cannot verify "+p, p, err)
+	}
+	if h == "" {
+		if !absent {
+			return fail(4, "expected file to be absent", p)
+		}
+		return nil
+	}
+	if absent || actual != h {
+		return fail(4, "unexpected file contents", p)
+	}
+	return nil
+}
 func (s *session) write(p string, v any) error {
 	if err := s.guard(p, true); err != nil {
 		return err
@@ -178,6 +209,24 @@ func (s *session) replace(src, dst, want string) error {
 		if err := s.root.Rename(src, dst); err != nil {
 			return err
 		}
+	}
+	return s.expect(dst, want)
+}
+
+// promoteNew atomically gives a transaction-owned stage its final name only
+// when that name is still absent. Unlike replace, it must never overwrite a
+// file that appeared after preflight.
+func (s *session) promoteNew(src, dst, want string) error {
+	if err := s.guard(src, false); err != nil {
+		return err
+	}
+	if err := s.guard(dst, true); err != nil {
+		return err
+	}
+	source := filepath.Join(s.m.config.Root, filepath.FromSlash(src))
+	target := filepath.Join(s.m.config.Root, filepath.FromSlash(dst))
+	if err := winfs.MoveNew(source, target); err != nil {
+		return err
 	}
 	return s.expect(dst, want)
 }

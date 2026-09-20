@@ -105,8 +105,10 @@ func (s *session) execute(p plan, inputs map[string]input) error {
 				return err
 			}
 		}
-		if err := s.copy(blob(dir, c.After), fmt.Sprintf("%s/stage/apply-%04d", dir, i), c.After); err != nil {
-			return err
+		if c.After != "" {
+			if err := s.copy(blob(dir, c.After), fmt.Sprintf("%s/stage/apply-%04d", dir, i), c.After); err != nil {
+				return err
+			}
 		}
 	}
 	if err := s.mark(dir, "READY", p, -1); err != nil {
@@ -122,20 +124,35 @@ func (s *session) execute(p plan, inputs map[string]input) error {
 		if err := s.m.point(fmt.Sprintf("intent-%d", i)); err != nil {
 			return err
 		}
-		if c.Before == "" {
-			if s.exists(c.Path) {
-				return fail(4, "new library file appeared", c.Path)
-			}
-		} else if err := s.expect(c.Path, c.Before); err != nil {
+		if err := s.expectState(c.Path, c.Before); err != nil {
 			return err
 		}
 		if c.Game {
 			if err := s.m.processes(); err != nil {
 				return err
 			}
+			if err := s.expectState(c.Path, c.Before); err != nil {
+				return err
+			}
 		}
-		if err := s.replace(fmt.Sprintf("%s/stage/apply-%04d", dir, i), c.Path, c.After); err != nil {
-			return err
+		if c.After == "" {
+			if err := s.root.Remove(c.Path); err != nil {
+				return err
+			}
+			if err := s.expectState(c.Path, ""); err != nil {
+				return err
+			}
+		} else {
+			stage := fmt.Sprintf("%s/stage/apply-%04d", dir, i)
+			var err error
+			if c.Before == "" {
+				err = s.promoteNew(stage, c.Path, c.After)
+			} else {
+				err = s.replace(stage, c.Path, c.After)
+			}
+			if err != nil {
+				return err
+			}
 		}
 		if err := s.m.point(fmt.Sprintf("replaced-%d", i)); err != nil {
 			return err
@@ -280,13 +297,15 @@ func (s *session) recover(h history, opt Options, compatible bool) ([]string, er
 			}
 		} else {
 			for _, c := range p.Changes {
-				if err := s.expect(c.Path, c.After); err != nil {
+				if err := s.expectState(c.Path, c.After); err != nil {
 					return nil, err
 				}
 				if c.Game {
 					b := p.After.Baselines[profile.Key(c.Path)]
-					if err := s.expect(baseline(b.SHA256), b.SHA256); err != nil {
-						return nil, err
+					if !b.Absent {
+						if err := s.expect(baseline(b.SHA256), b.SHA256); err != nil {
+							return nil, err
+						}
 					}
 				}
 			}
@@ -360,9 +379,25 @@ func (s *session) recover(h history, opt Options, compatible bool) ([]string, er
 				return nil, wrap(5, "recovery snapshot invalid", err)
 			}
 		}
+		stageSurvives := false
+		if c.After != "" {
+			stage := fmt.Sprintf("%s/stage/apply-%04d", dir, i)
+			if s.exists(stage) {
+				if err := s.expect(stage, c.After); err != nil {
+					return nil, wrap(5, "recovery apply stage invalid", err)
+				}
+				stageSurvives = true
+			}
+		}
 		exists := s.exists(c.Path)
 		if !exists {
+			if c.Before == "" {
+				continue
+			}
 			if !c.Game {
+				continue
+			}
+			if c.After == "" && intent {
 				continue
 			}
 			key := profile.Key(c.Path)
@@ -381,6 +416,12 @@ func (s *session) recover(h history, opt Options, compatible bool) ([]string, er
 				return nil, fail(4, "--restore-missing cannot overwrite an existing target", c.Path)
 			}
 			matched[profile.Key(c.Path)] = true
+		}
+		// Successful replacement consumes the exact transaction-owned stage.
+		// If it survives, matching destination bytes came from elsewhere and
+		// must not be removed or overwritten during rollback.
+		if stageSurvives && hash == c.After && c.After != c.Before {
+			return nil, fail(4, "unowned target appeared before staged promotion", c.Path)
 		}
 		if hash != c.Before && hash != c.After {
 			return nil, fail(4, "external drift blocks recovery", c.Path)
@@ -403,8 +444,11 @@ func (s *session) recover(h history, opt Options, compatible bool) ([]string, er
 			continue
 		}
 		if !s.exists(c.Path) {
-			guardProcesses = true
-			break
+			if c.Before != "" {
+				guardProcesses = true
+				break
+			}
+			continue
 		}
 		hash, _, err := s.hash(c.Path)
 		if err != nil {
@@ -433,6 +477,9 @@ func (s *session) recover(h history, opt Options, compatible bool) ([]string, er
 			continue
 		}
 		if c.Before == "" {
+			if missing {
+				continue
+			}
 			if err := s.expect(c.Path, c.After); err != nil {
 				return nil, err
 			}
@@ -440,6 +487,10 @@ func (s *session) recover(h history, opt Options, compatible bool) ([]string, er
 				return nil, err
 			}
 			continue
+		}
+		intent, err := s.hasMarker(dir, fmt.Sprintf("APPLY_INTENT_%04d", i), p, i)
+		if err != nil {
+			return nil, wrap(5, "invalid intent", err)
 		}
 		if s.exists(c.Path) {
 			hash, _, err := s.hash(c.Path)
@@ -469,11 +520,17 @@ func (s *session) recover(h history, opt Options, compatible bool) ([]string, er
 			if err := s.expect(c.Path, c.After); err != nil {
 				return nil, err
 			}
-		} else if !auth[profile.Key(c.Path)] {
+		} else if !(c.After == "" && intent) && !auth[profile.Key(c.Path)] {
 			return nil, fail(5, "target disappeared during recovery", c.Path)
 		}
-		if err := s.replace(stage, c.Path, c.Before); err != nil {
-			return nil, err
+		var promoteErr error
+		if missing {
+			promoteErr = s.promoteNew(stage, c.Path, c.Before)
+		} else {
+			promoteErr = s.replace(stage, c.Path, c.Before)
+		}
+		if promoteErr != nil {
+			return nil, promoteErr
 		}
 		if missing {
 			restored = append(restored, c.Path)
@@ -483,12 +540,8 @@ func (s *session) recover(h history, opt Options, compatible bool) ([]string, er
 		}
 	}
 	for _, c := range p.Changes {
-		if c.Before != "" {
-			if err := s.expect(c.Path, c.Before); err != nil {
-				return nil, err
-			}
-		} else if s.exists(c.Path) {
-			return nil, fail(5, "import rollback left target", c.Path)
+		if err := s.expectState(c.Path, c.Before); err != nil {
+			return nil, err
 		}
 	}
 	if err := s.pruneImport(p); err != nil {
@@ -531,8 +584,10 @@ func (s *session) abandonPreparation(p plan, dry bool) error {
 		if c.Before != "" {
 			allowed[blob(dir, c.Before)] = true
 		}
-		allowed[blob(dir, c.After)] = true
-		allowed[fmt.Sprintf("%s/stage/apply-%04d", dir, i)] = true
+		if c.After != "" {
+			allowed[blob(dir, c.After)] = true
+			allowed[fmt.Sprintf("%s/stage/apply-%04d", dir, i)] = true
+		}
 	}
 	for _, b := range p.Baselines {
 		allowed[blob(dir, b.SHA256)] = true

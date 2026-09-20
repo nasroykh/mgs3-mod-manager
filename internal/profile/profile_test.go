@@ -29,3 +29,16 @@ func TestPathPolicy(t *testing.T) {
 		t.Fatalf("Key returned %q", got)
 	}
 }
+
+func TestPluginTargetPolicy(t *testing.T) {
+	for _, path := range []string{"dinput8.asi", "plugin-1.asi"} {
+		if err := PluginTarget(path); err != nil {
+			t.Errorf("PluginTarget(%q): %v", path, err)
+		}
+	}
+	for _, path := range []string{".asi", "DINPUT8.asi", "dinput8.ASI", "plugins/dinput8.asi", "../dinput8.asi", "dinput8.asi/"} {
+		if err := PluginTarget(path); err == nil {
+			t.Errorf("PluginTarget(%q) unexpectedly succeeded", path)
+		}
+	}
+}

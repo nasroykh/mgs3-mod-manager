@@ -41,14 +41,19 @@ func validState(st State) error {
 				}
 				owners[k] = id
 				b, ok := st.Baselines[k]
-				if !ok || b.SHA256 != f.OriginalSHA256 {
+				if !ok || b.Absent != f.OriginalAbsent || !b.Absent && b.SHA256 != f.OriginalSHA256 {
 					return fmt.Errorf("enabled mod lacks correct baseline")
 				}
 			}
 		}
 	}
 	for key, b := range st.Baselines {
-		if profile.Target(b.Target) != nil || key != profile.Key(b.Target) || !hashPattern.MatchString(b.SHA256) || b.Bytes < 0 || b.Bytes > 64<<20 || b.Profile != profile.ID || b.Captured == "" {
+		targetErr := profile.Target(b.Target)
+		if b.Absent {
+			targetErr = profile.AddedTarget(b.Target)
+		}
+		validContents := b.Absent && b.SHA256 == "" && b.Bytes == 0 || !b.Absent && hashPattern.MatchString(b.SHA256) && b.Bytes >= 0 && b.Bytes <= 64<<20
+		if targetErr != nil || key != profile.Key(b.Target) || !validContents || b.Profile != profile.ID || b.Captured == "" {
 			return fmt.Errorf("invalid baseline")
 		}
 	}
@@ -154,7 +159,7 @@ func validatePlan(p plan, previous State, seq uint64) error {
 			for _, m := range p.After.Mods {
 				if m.Enabled {
 					for _, f := range m.Manifest.Files {
-						if profile.Key(f.Target) == k && f.OriginalSHA256 == b.SHA256 {
+						if profile.Key(f.Target) == k && f.OriginalAbsent == b.Absent && f.OriginalSHA256 == b.SHA256 {
 							found = true
 						}
 					}
@@ -162,6 +167,9 @@ func validatePlan(p plan, previous State, seq uint64) error {
 			}
 			if !found {
 				return fmt.Errorf("unreferenced new baseline")
+			}
+			if b.Absent {
+				continue
 			}
 			item := inventory{Path: baseline(b.SHA256), SHA256: b.SHA256, Bytes: b.Bytes}
 			if p.Schema == 2 {
@@ -331,6 +339,7 @@ func (s *session) load() (history, error) {
 		}
 		known["MISSING_AUTHORIZED"] = true
 		for i := range p.Changes {
+			applied := false
 			for _, prefix := range []string{"APPLY_INTENT", "APPLIED"} {
 				name := fmt.Sprintf("%s_%04d", prefix, i)
 				known[name] = true
@@ -342,6 +351,7 @@ func (s *session) load() (history, error) {
 					return h, fail(5, "apply before READY")
 				}
 				if prefix == "APPLIED" && ok {
+					applied = true
 					intent, _ := s.hasMarker(dir, fmt.Sprintf("APPLY_INTENT_%04d", i), p, i)
 					if !intent {
 						return h, fail(5, "applied without intent")
@@ -350,6 +360,9 @@ func (s *session) load() (history, error) {
 				if flags["COMMITTED"] && !ok {
 					return h, fail(5, "commit lacks completed apply records")
 				}
+			}
+			if applied && p.Changes[i].After != "" && s.exists(fmt.Sprintf("%s/stage/apply-%04d", dir, i)) {
+				return h, fail(5, "applied change retains its apply stage")
 			}
 		}
 		if err := s.validateAuthorization(dir, p, flags["READY"], flags["COMMITTED"]); err != nil {

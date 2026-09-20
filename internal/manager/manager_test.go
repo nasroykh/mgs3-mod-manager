@@ -176,7 +176,7 @@ func TestCrashChild(t *testing.T) {
 		return
 	}
 	root := os.Getenv("MGS3_TEST_ROOT")
-	m := New(Config{Root: root, Core: []profile.Fingerprint{{Path: "game.exe", SHA256: transaction.Hash([]byte("core"))}}, CheckProcesses: func(string) error { return nil }, Fault: func(point string) error {
+	m := New(Config{Root: root, Core: []profile.Fingerprint{{Path: "game.exe", SHA256: transaction.Hash([]byte("core"))}}, CheckProcesses: func(string) error { return nil }, CheckASILoader: func(string) error { return nil }, Fault: func(point string) error {
 		if point == os.Getenv("MGS3_TEST_POINT") {
 			os.Exit(91)
 		}

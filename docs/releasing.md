@@ -18,4 +18,6 @@ The tag-triggered workflow builds on Windows using `go.mod`, tests the installer
 
 After publication, check anonymous asset URLs and uploaded hashes. Run the downloaded installer into an isolated directory using `-NoPath`, then check the executable's help and read-only verification. This does not prove a persisted PATH update; that branch has separate tests. Gameplay cannot be tested in CI without the game and a human trial.
 
+To repair a failed publishing workflow without moving an existing version tag, push the reviewed workflow fix to `release/<version-tag>` (for example `release/v0.1.0`). This uses the workflow from the repair branch but explicitly checks out the original immutable tag for build, tests, assets, and notes. It cannot silently overwrite an existing release: draft creation fails if the release already exists. Installer tests run in a child PowerShell process so expected negative-test exit codes do not leak into the runner's final status.
+
 If a gate fails, stop publication. For a published defect, issue a fixed new release; never silently downgrade state or rewrite the existing version. Older binaries may not read schema-3 history. Binaries are not Authenticode-signed; do not advise disabling security tools.

@@ -114,3 +114,4 @@ function Invoke-WebRequest([string]`$Uri,[string]`$OutFile) { Copy-Item -Literal
         Remove-Item -LiteralPath $resolved -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
+$global:LASTEXITCODE = 0

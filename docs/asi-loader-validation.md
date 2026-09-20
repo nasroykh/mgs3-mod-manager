@@ -1,5 +1,7 @@
 # Standalone ASI loader validation
 
+This is the local integration checkpoint. Published v0.1.0 asset identities and public installer verification are in [release validation](releases/v0.1.0-validation.md); use those release assets for distribution.
+
 Date: 2026-09-20. Scope: pinned standalone Ultimate ASI Loader package, manager ownership/dependency handling, combined QCamo distribution, and local installation. Automated and filesystem validation is complete. The user subsequently reported successful in-game operation; detailed scenario coverage is not claimed.
 
 ## Provenance

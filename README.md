@@ -2,6 +2,8 @@
 
 A Windows command-line mod manager for the supported build of Metal Gear Solid 3: Master Collection. Install the compiled release without Go or Git, then import and manage texture mods and ASI plugins.
 
+[Download v0.1.0](https://github.com/nasroykh/mgs3-mod-manager/releases/tag/v0.1.0) · [Public installation verification](docs/releases/v0.1.0-validation.md)
+
 The executable checks three compiled binary fingerprints. Select another installation of the same build with `--game-root <folder>`. Schema 1 supports existing textures; schema 2 adds absent-origin root `.asi` plugins; schema 3 manages the pinned standalone Ultimate ASI Loader. QCamo and its loader can both be installed through this manager, without MGSHDFix. The manager has no network service, dependency downloader, or background process.
 
 **QCamo and standalone ASI loader:** see the [current plan](docs/managed-asi-loader-plan.md), [package instructions](mods/qcamo/README.md), and [validation record](docs/asi-loader-validation.md). Earlier texture and external-loader checkpoints are historical and are not proof of gameplay testing.

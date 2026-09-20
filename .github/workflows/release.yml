@@ -35,14 +35,17 @@ jobs:
         run: |
           # Hosted TEMP uses an 8.3 user alias. Keep strict path guards enabled.
           $testTemp = Join-Path $env:GITHUB_WORKSPACE 'work/test-temp'
-          New-Item -ItemType Directory -Path $testTemp -Force | Out-Null
           # DELETE on a file can otherwise be bypassed through parent DELETE_CHILD.
           # Deny only that alternate route on test directories, not file DELETE.
-          $acl = Get-Acl -LiteralPath $testTemp
           $sid = [Security.Principal.WindowsIdentity]::GetCurrent().User
           $rule = [Security.AccessControl.FileSystemAccessRule]::new($sid, [Security.AccessControl.FileSystemRights]::DeleteSubdirectoriesAndFiles, [Security.AccessControl.InheritanceFlags]::ContainerInherit, [Security.AccessControl.PropagationFlags]::None, [Security.AccessControl.AccessControlType]::Deny)
-          $acl.AddAccessRule($rule)
-          Set-Acl -LiteralPath $testTemp -AclObject $acl
+          # winfs fixtures intentionally use their own repository-local root.
+          foreach ($root in @($testTemp, (Join-Path $env:GITHUB_WORKSPACE '.cache/winfs-tests'))) {
+            New-Item -ItemType Directory -Path $root -Force | Out-Null
+            $acl = Get-Acl -LiteralPath $root
+            $acl.AddAccessRule($rule)
+            Set-Acl -LiteralPath $root -AclObject $acl
+          }
           "TEMP=$testTemp" >> $env:GITHUB_ENV
           "TMP=$testTemp" >> $env:GITHUB_ENV
       - name: Build and test

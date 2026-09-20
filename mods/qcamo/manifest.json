@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "id": "qcamo",
+  "version": "1.0.4",
+  "name": "QCamo (upstream 1.0.4)",
+  "profile": "mgs3-mcv-local-0d585dcc6a67",
+  "files": [
+    {
+      "source": "payload/qcamo.asi",
+      "target": "qcamo.asi",
+      "originalSha256": "",
+      "payloadSha256": "4f518f5d1f53db6041533f22af14f6e95648fd20878d6cd240eed309d00b5193",
+      "payloadBytes": 4063819,
+      "originalAbsent": true
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # MGS3 local mod manager and first texture mod
 
+Historical texture-only design. Its original restrictions remain the schema-1 contract. The deliberate schema-2/runtime-plugin extension and portable installation selection are documented in [QCamo integration plan](qcamo-integration-plan.md).
+
 Status: acceptance plan. The CLI and an offline test package have now been implemented; see [implementation-status.md](implementation-status.md) for current evidence and remaining live-test gates.
 
 Date: 2026-09-19.

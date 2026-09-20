@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 3,
+  "id": "asi-loader",
+  "version": "9.7.4",
+  "name": "Ultimate ASI Loader (standalone x64)",
+  "profile": "mgs3-mcv-local-0d585dcc6a67",
+  "files": [{
+    "source": "payload/wininet.dll",
+    "target": "wininet.dll",
+    "originalSha256": "",
+    "originalAbsent": true,
+    "payloadSha256": "031a3e5576d91dce1e438d36b9a3d462c7334ab4791990a8ff1e3ddc0e132daf",
+    "payloadBytes": 1198304
+  }]
+}

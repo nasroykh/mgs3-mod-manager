@@ -1,5 +1,7 @@
 # Implementation status
 
+Historical texture-release checkpoint. The statements and artifact hashes below describe the pre-QCamo release. For the current manager-owned loader, user-reported in-game success, and generation-13 state, see [standalone-loader validation](asi-loader-validation.md). The intermediate external-loader checkpoint is in [QCamo validation](qcamo-validation.md).
+
 Updated 2026-09-20. The CLI and local HQ test package are implemented. The 2026-09-19 review findings have been remediated and the complete release gate passes. The user confirmed the magenta uniform rendered normally in game and then closed the game. The manager restored the exact original texture; live state remains generation 9, with `camo-test` stored but disabled and no recovery pending.
 
 ## Delivered artifacts

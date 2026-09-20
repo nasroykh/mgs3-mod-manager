@@ -2,7 +2,7 @@
 
 A Windows command-line mod manager for the supported build of Metal Gear Solid 3: Master Collection. Install the compiled release without Go or Git, then import and manage texture mods and ASI plugins.
 
-[Download v0.2.0](https://github.com/nasroykh/mgs3-mod-manager/releases/tag/v0.2.0) · [Release notes](docs/releases/v0.2.0.md)
+[Download v0.2.0](https://github.com/nasroykh/mgs3-mod-manager/releases/tag/v0.2.0) · [Release notes](docs/releases/v0.2.0.md) · [Public verification](docs/releases/v0.2.0-validation.md)
 
 **Crouch Walk support (v0.2.0+):** [local-import instructions and limits](docs/crouch-walk.md). Users supply their own original Nexus download; no Crouch Walk payload is redistributed. Schema 4 is restricted to this exact mod and supported asset baseline. Do not downgrade to v0.1.0 after importing a schema-4 package, even after removing the mod.
 

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "camo-test",
+  "version": "0.1.0",
+  "name": "Olive Drab Magenta Test",
+  "profile": "mgs3-mcv-local-0d585dcc6a67",
+  "files": [
+    {
+      "source": "payload/camo.ctxr",
+      "target": "hqtex/flatlist/_win/sna_def_olive.bmp.ctxr",
+      "originalSha256": "1ba4e570dfeb21ee63e29b76f2acbf73b799db93c3335920023037810ead977d",
+      "payloadSha256": "384dc7966fecf246162ab8712b065c5159230c151e62af852fc47c11acb3bb3d",
+      "payloadBytes": 22370144
+    }
+  ]
+}

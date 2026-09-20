@@ -1,0 +1,47 @@
+diff --git a/image/ctxr/ctxr.cpp b/image/ctxr/ctxr.cpp
+index dc210d9..a4d4af2 100644
+--- a/image/ctxr/ctxr.cpp
++++ b/image/ctxr/ctxr.cpp
+@@ -217,9 +217,13 @@ void CTXR::saveExtend(const char* filename)
+ 	uint32_t filePtr;
+ 	uint32_t dataPtr;
+ 	uint32_t chunkSize;
++	uint32_t mipWidth;
++	uint32_t mipHeight;
+ 	std::string output = "";
+ 
+-	chunkSize = getMainTextureSize();
++	mipWidth = getWidth();
++	mipHeight = getHeight();
++	chunkSize = mipWidth * mipHeight * 4;
+ 	writeDataToFile((uint8_t*)header, 0x80, filename, output);
+ 
+ 	dataPtr = 0x0;
+@@ -238,6 +242,8 @@ void CTXR::saveExtend(const char* filename)
+ 		align = writeAlignment(filename, output, filePtr, 0x20);
+ 		filePtr += align;
+ 
+-		chunkSize /= 4;
++		mipWidth = std::max(1u, mipWidth / 2);
++		mipHeight = std::max(1u, mipHeight / 2);
++		chunkSize = mipWidth * mipHeight * 4;
+ 	}
+-}
+\ No newline at end of file
++}
+diff --git a/image/dds/dds.cpp b/image/dds/dds.cpp
+index 8ec5a8d..45eb61d 100644
+--- a/image/dds/dds.cpp
++++ b/image/dds/dds.cpp
+@@ -30,9 +30,10 @@ void DDS::create(uint32_t width, uint32_t height, uint32_t pitch, uint32_t n_mip
+ 	header->flags     = flags;
+ 	header->width     = width;
+ 	header->height    = height;
+-	header->pitch     = 0;
++	header->pitch     = width * 4;
+ 	header->n_mipmaps = n_mipmaps;
+ 
++	header->format.pxlFmtSize = 0x20;
+ 	header->format.flags    = (DDPF_RGB | DDPF_ALPHAPIXELS);
+ 	header->format.bitCount = 32;
+ 	header->format.rBitmask = 255 << 16;

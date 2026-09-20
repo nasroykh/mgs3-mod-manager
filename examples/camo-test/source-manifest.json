@@ -1,0 +1,39 @@
+{
+  "status": "user-visual-trial-passed-original-restored-mod-disabled",
+  "tool": {
+    "name": "CtxrTool",
+    "repository": "https://github.com/Jayveer/CtxrTool",
+    "revision": "a16f1148b68f2cdd1a326e37fa0b36c75fbadeee",
+    "patch": "author/ctxrtool-a16f1148-roundtrip.patch",
+    "patchSha256": "ab1040da93127bef31d59c1df6b5750a07111f94edd05adb40d5066290ecc9b4",
+    "licenseClaim": "MIT (upstream README; LICENSE.md absent at pinned revision)",
+    "executable": "mgs3-mod-manager/work/converter-repair/CtxrTool-fixed.exe",
+    "executableSha256": "5ae0fb7881b093a31f9828a9bf6dbd458ab838629a88a8167a90373fb2cf8cf4",
+    "build": "Visual Studio 2022 Community MSVC 14.44.35207, x64 Release, vcvars64.bat + cl.exe"
+  },
+  "candidates": [
+    {
+      "name": "hq",
+      "source": "hqtex/flatlist/_win/sna_def_olive.bmp.ctxr",
+      "bytes": 22370144,
+      "sha256": "1ba4e570dfeb21ee63e29b76f2acbf73b799db93c3335920023037810ead977d",
+      "target": "hqtex/flatlist/_win/sna_def_olive.bmp.ctxr"
+    },
+    {
+      "name": "fallback",
+      "source": "textures/flatlist/_win/sna_def_olive.bmp.ctxr",
+      "bytes": 1398560,
+      "sha256": "855dd1256765e23d034b6690365472c01bdf501ac549ff24e86d4371f06d1049",
+      "target": "textures/flatlist/_win/sna_def_olive.bmp.ctxr"
+    }
+  ],
+  "roundtrip": {
+    "status": "byte-identical-both-candidates",
+    "reason": "Patched non-square mip sizing and DDS header fields; every original byte and decoded mip preserved.",
+    "recolorApplied": true,
+    "liveSmokeRun": false,
+    "liveSmokeDisposition": "Unchanged rendering smoke superseded by byte identity; user confirmed recolor rendering, then exact original restoration passed.",
+    "visualEvidence": "User reported: Magenta uniform; rendering looks normal; game closed.",
+    "finalEnabled": false
+  }
+}

@@ -1,0 +1,8 @@
+/.cache/
+/dist/
+/work/
+*.exe
+*.zip
+*.ctxr
+*.dds
+*.param

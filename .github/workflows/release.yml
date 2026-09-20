@@ -31,11 +31,20 @@ jobs:
           go-version-file: go.mod
           cache: false
       - name: Build and test
-        shell: powershell
+        shell: pwsh
         run: |
-          ./scripts/build.ps1
-          powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/test-installer.ps1
-          if ($LASTEXITCODE -ne 0) { throw 'Installer tests failed' }
+          foreach ($script in @('build', 'test-installer')) {
+            $ErrorActionPreference = 'Continue'
+            powershell.exe -NoProfile -ExecutionPolicy Bypass -File "./scripts/$script.ps1" *> "$script.log"
+            $code = $LASTEXITCODE
+            $ErrorActionPreference = 'Stop'
+            Get-Content "$script.log"
+            if ($code -ne 0) {
+              $detail = ((Get-Content "$script.log" -Tail 80) -join "`n").Replace('%','%25').Replace("`r",'%0D').Replace("`n",'%0A')
+              Write-Output "::error title=$script failed::$detail"
+              throw "$script exited $code"
+            }
+          }
       - name: Package pinned artifacts
         shell: powershell
         run: |

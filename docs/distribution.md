@@ -10,7 +10,7 @@ Git stores source, manifests, build recipes, documentation, notices, and assets 
 
 ## What testers receive
 
-Send the complete `qcamo-1.0.4-standalone-distribution.zip` plus the adjacent checksum file from the current output directory recorded in [validation](asi-loader-validation.md). The archive contains the manager, both import packages, install/remove instructions, both upstream licenses, provenance, and member checksums. Testers need neither Go nor Git and must not copy the author's manager state.
+Send the complete `qcamo-1.0.4-standalone-distribution.zip` plus `checksums.txt` from [v0.1.0 release assets](https://github.com/nasroykh/mgs3-mod-manager/releases/tag/v0.1.0). The archive contains the manager, both import packages, install/remove instructions, upstream licenses, manager dependency notices, provenance, and member checksums. Testers need neither Go nor Git and must not copy the author's manager state. Local pre-release artifacts in the historical validation record are superseded by the versioned release assets.
 
 1. Download the complete distribution, verify its SHA-256 against the separately supplied checksum, and extract it outside the game folder.
 2. Follow the bundled README, supplying the tester's actual game path with `--game-root` on each command.
@@ -22,9 +22,9 @@ Native ASI plugins execute code inside the game. A matching checksum establishes
 
 ## Delivery channel
 
-For the first small trial, privately send the complete ZIP and checksums to selected testers. For broader testing, publish a clearly labeled prerelease on the existing manager repository, attaching the built distribution and checksums. GitHub supports release notes and binary assets; its automatically generated source ZIP is not the installable distribution. See [GitHub's release documentation](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases).
+The first local trial succeeded and the user authorized v0.1.0 publication. Share the release asset link rather than a development folder. GitHub's automatic source ZIP is not the installable distribution. See [release process](releasing.md) and [GitHub release documentation](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases). Future experimental versions can be marked prerelease; the default latest installer selects non-prereleases.
 
-Use a manager/integration release tag distinct from upstream QCamo's version, for example `qcamo-integration-v0.1.0-preview.1`. Identify QCamo 1.0.4 and Ultimate ASI Loader 9.7.4 separately. Any changed distribution must receive a new integration release revision and fresh checksums; do not silently replace an already published asset. Tag the exact source commit used to prepare it and include the tested game fingerprint requirements and known limitations in release notes.
+Manager release v0.1.0 is distinct from upstream QCamo 1.0.4 and Ultimate ASI Loader 9.7.4. Changed distributions require a new release and fresh checksums; never silently replace published assets. Tag the reviewed source commit and include fingerprint requirements and known limitations.
 
 No repository creation, push, tag, or hosted release is performed by these instructions. Choose public versus private visibility explicitly before publishing.
 

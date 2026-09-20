@@ -80,6 +80,7 @@ $files = [ordered]@{}
 foreach ($name in @('LICENSE.txt', 'README.md', 'UPSTREAM.md')) { $files[$name] = [IO.File]::ReadAllBytes((Join-Path $source $name)) }
 $files['LOADER-LICENSE.txt'] = [IO.File]::ReadAllBytes((Join-Path $projectRoot 'mods/asi-loader/LICENSE.txt'))
 $files['LOADER-UPSTREAM.md'] = [IO.File]::ReadAllBytes((Join-Path $projectRoot 'mods/asi-loader/UPSTREAM.md'))
+$files['THIRD-PARTY-NOTICES.txt'] = [IO.File]::ReadAllBytes((Join-Path $projectRoot 'THIRD-PARTY-NOTICES.txt'))
 $files['mgs3mod.exe'] = [IO.File]::ReadAllBytes($ManagerExe)
 $files[$innerName] = [IO.File]::ReadAllBytes($innerPath)
 $files[$loaderName] = [IO.File]::ReadAllBytes($loaderPath)

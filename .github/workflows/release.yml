@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Build and test
+        shell: powershell
+        run: |
+          ./scripts/build.ps1
+          ./scripts/test-installer.ps1
+      - name: Package pinned artifacts
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory work/upstream -Force | Out-Null
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/zexk/mgs3-qcamo/releases/download/v1.0.4/qcamo-v1.0.4.zip' -OutFile work/upstream/qcamo.zip
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/v9.7.4/Ultimate-ASI-Loader-NoPDB_x64.zip' -OutFile work/upstream/loader.zip
+          ./scripts/package-release.ps1 -Version $env:GITHUB_REF_NAME -UpstreamArchive work/upstream/qcamo.zip -LoaderArchive work/upstream/loader.zip
+          $release = Join-Path $PWD "dist/release-$env:GITHUB_REF_NAME"
+          $env:MGS3MOD_QCAMO_PACKAGE = Join-Path $release 'qcamo-1.0.4.mgs3mod.zip'
+          $env:MGS3MOD_ASI_LOADER_PACKAGE = Join-Path $release 'asi-loader-9.7.4.mgs3mod.zip'
+          $env:GOCACHE = Join-Path $PWD '.cache/go-build'
+          $env:GOMODCACHE = Join-Path $PWD '.cache/go-mod'
+          go test -count=1 ./...
+          if ($LASTEXITCODE -ne 0) { throw 'Real-artifact tests failed' }
+      - name: Publish complete release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $dir = Join-Path $PWD "dist/release-$tag"
+          $assets = @(Get-ChildItem -LiteralPath $dir -File | ForEach-Object FullName)
+          $expected = @("mgs3mod_$($tag.Substring(1))_windows_amd64.zip", 'asi-loader-9.7.4.mgs3mod.zip', 'qcamo-1.0.4.mgs3mod.zip', 'qcamo-1.0.4-standalone-distribution.zip', 'install.ps1', 'checksums.txt')
+          if ($assets.Count -ne 6 -or (Compare-Object $expected @(Get-ChildItem -LiteralPath $dir -File | ForEach-Object Name))) { throw 'Unexpected release asset set' }
+          $sums = @(Get-Content -LiteralPath (Join-Path $dir 'checksums.txt'))
+          if ($sums.Count -ne 5) { throw 'Unexpected checksum count' }
+          foreach ($name in $expected | Where-Object { $_ -ne 'checksums.txt' }) {
+            $entry = @($sums | Where-Object { $_ -cmatch ('^[a-f0-9]{64}  ' + [regex]::Escape($name) + '$') })
+            if ($entry.Count -ne 1 -or (Get-FileHash -LiteralPath (Join-Path $dir $name)).Hash.ToLowerInvariant() -cne $entry[0].Substring(0,64)) { throw "Checksum failed: $name" }
+          }
+          gh release create $tag --verify-tag --draft --title "MGS3 Mod Manager $tag" --notes-file "docs/releases/$tag.md" @assets
+          if ($LASTEXITCODE -ne 0) { throw 'Draft creation/upload failed; no release published' }
+          gh release edit $tag --draft=false --latest
+          if ($LASTEXITCODE -ne 0) { throw 'Publish failed; inspect the draft' }

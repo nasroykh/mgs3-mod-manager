@@ -1,5 +1,7 @@
 # Direct launch
 
+Status: complete for the startup-only scope as of 2026-09-21. Save autoload, automatic Main Menu advancement, additional game configurations, and graphical controls are separate future features.
+
 Current source builds can start the supported MGS3 installation without opening the Master Collection selector. This feature requires an initialized manager and the exact compiled game fingerprints already enforced by other manager commands.
 
 The first supported preset is `na-startup`:

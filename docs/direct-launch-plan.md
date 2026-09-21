@@ -1,10 +1,10 @@
 # MGS3 direct launch and optional save autoload
 
-Date: 2026-09-21. Status: Phases 0–2 are implemented in the working tree for startup-only direct launch. The native argument route was runtime-tested, and the built manager passed real-root dry-run preflight. Literal Main Menu arrival and save autoload remain unavailable.
+Date: 2026-09-21. Status: COMPLETE for startup-only direct launch (Phases 0–2). The implementation is committed and pushed, the native argument route was runtime-tested, and the installed manager passed real-root dry-run preflight. Literal Main Menu arrival and save autoload remain unavailable and are separate future features.
 
 ## Goal and decision
 
-Extend the existing `mgs3mod` executable with a small selector that remembers how to start MGS3. The first supported preset will launch the North American game in English without opening the Master Collection selection menu. A later, separately gated extension will load a chosen save automatically if research establishes a reliable native loading path.
+Extend the existing `mgs3mod` executable with a small selector that remembers how to start MGS3. The first supported preset launches the North American game in English without opening the Master Collection selection menu. Any chosen-save autoload work is a separate, gated future feature that requires a reliable native loading path.
 
 Use the game's existing command-line arguments. Do not install or fork all of MGSHDFix. Do not replace the existing ASI loader, patch game executables, or expand mod package schemas for basic launching. Keep existing QCamo and Crouch Walk behavior intact.
 
@@ -119,7 +119,7 @@ Gate: the user can choose and save a preset, launch it again directly, and repro
 
 Outcome on 2026-09-21: profile persistence, selector behavior, process handoff, failure paths, and dry-run behavior have automated coverage. The full Go suite, `go vet ./...`, the repository build script, and a real-root JSON dry-run passed. The dry-run did not create `mgs3mod-launch.json`. A non-dry launch through the newly built manager remains UNVERIFIABLE because no additional game opening was authorized after the build; Phase 0 independently validates the exact native argument route. After verification, the root-level manager was atomically replaced and the installed binary passed the same dry-run. Installed `verify --json` returned compatible and initialized state at generation 15 with no issues. The previous executable is backed up as `dist/mgs3mod.previous.exe`.
 
-## Phase 3: bounded save-autoload feasibility research
+## Deferred future work: bounded save-autoload feasibility research
 
 This is a research milestone, not a promise that the implementation is already known. Complete Phase 2 independently.
 
@@ -133,7 +133,7 @@ A save resumes according to MGS3's own saved checkpoint semantics. Do not promis
 
 Required research output: evidence of the actual load path, a minimal proof of concept, compatibility limitations, and a concrete test result for safe cancellation. If no reliable path is established, stop this extension and retain the working selector. Do not expand into a general trainer, save editor, or full MGSHDFix fork.
 
-## Phase 4: optional one-shot autoload extension
+## Deferred future work: optional one-shot autoload extension
 
 Only implement after Phase 3 establishes the mechanism. If native integration is needed, package a small `mgs3autoload.asi` through the manager's existing root-level ASI support and use the installed `wininet.dll` loader. Verify that the packaging rules accept it; mutable launch requests remain manager data, not immutable mod payloads.
 
@@ -151,7 +151,7 @@ Extend the selector only when this works. Use profile schema version 2 with `des
 
 ## Scope and stopping points
 
-The recommended first implementation is Phases 0–2: native launch proof, saved profiles, and the small selector. Save autoload remains part of the intended outcome, with explicit research and implementation gates in Phases 3–4. It must not delay a usable launcher bypass or be described as complete before native behavior is proven.
+The startup-only feature consists of Phases 0–2: native launch proof, saved profiles, and the small selector. That feature is complete. Save autoload is deferred as separate future work with explicit research and implementation gates; it is not an unfinished requirement of the startup milestone.
 
 Intro-logo removal, graphics fixes, resolution changes, executable patching, save editing, automatic cloud conflict resolution, and a graphical launcher are outside the initial scope.
 

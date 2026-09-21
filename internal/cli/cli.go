@@ -29,6 +29,13 @@ Commands:
   recover                        Resolve an interrupted operation
   recover --restore-missing <relative-target> [--restore-missing <target> ...]
 
+Launch:
+  launch                        Launch saved default or selector choice
+  launch --select               Open interactive launch selector
+  launch --profile <id>         Launch named profile
+  launch --region <r> --language <l> --controller <c> --target <t>
+                                Launch one complete selection (startup only)
+
 Options:
   --game-root <folder>  Select an installation of the supported game build
   --json       Emit one JSON result, including failures
@@ -44,9 +51,11 @@ Without --game-root, the original local installation path is used.
 `
 
 type parsed struct {
-	command, arg, out, root string
-	json, help, baseline    bool
-	options                 manager.Options
+	command, arg, out, root                       string
+	json, help, baseline                          bool
+	options                                       manager.Options
+	profile, region, language, controller, target string
+	selectLaunch                                  bool
 }
 
 type repeatedStrings []string
@@ -64,6 +73,12 @@ func parse(args []string) (parsed, error) {
 	flags.BoolVar(&p.baseline, "baseline", false, "restore the local baseline")
 	flags.StringVar(&p.out, "out", "", "output package")
 	flags.StringVar(&p.root, "game-root", "", "game installation directory")
+	flags.StringVar(&p.profile, "profile", "", "launch profile")
+	flags.StringVar(&p.region, "region", "", "launch region")
+	flags.StringVar(&p.language, "language", "", "launch language")
+	flags.StringVar(&p.controller, "controller", "", "launch controller")
+	flags.StringVar(&p.target, "target", "", "launch destination")
+	flags.BoolVar(&p.selectLaunch, "select", false, "choose launch settings")
 	flags.Var((*repeatedStrings)(&p.options.RestoreMissing), "restore-missing", "explicit missing target")
 	pos := []string{}
 	options := []string{}
@@ -83,7 +98,7 @@ func parse(args []string) (parsed, error) {
 		}
 		seen[v] = true
 		options = append(options, v)
-		if v == "--out" || v == "--restore-missing" || v == "--game-root" {
+		if v == "--out" || v == "--restore-missing" || v == "--game-root" || v == "--profile" || v == "--region" || v == "--language" || v == "--controller" || v == "--target" {
 			if i+1 == len(args) || strings.HasPrefix(args[i+1], "--") {
 				return p, fmt.Errorf("%s needs a value", v)
 			}
@@ -105,7 +120,7 @@ func parse(args []string) (parsed, error) {
 		return p, fmt.Errorf("command required")
 	}
 	p.command = pos[0]
-	arity := map[string]int{"doctor": 0, "init": 0, "pack": 1, "import-crouch": 1, "add": 1, "list": 0, "status": 0, "verify": 0, "enable": 1, "disable": 1, "remove": 1, "restore": 0, "recover": 0}
+	arity := map[string]int{"doctor": 0, "init": 0, "pack": 1, "import-crouch": 1, "add": 1, "list": 0, "status": 0, "verify": 0, "enable": 1, "disable": 1, "remove": 1, "restore": 0, "recover": 0, "launch": 0}
 	n, ok := arity[p.command]
 	if !ok {
 		return p, fmt.Errorf("unknown command %s", p.command)
@@ -128,13 +143,41 @@ func parse(args []string) (parsed, error) {
 	if len(p.options.RestoreMissing) > 0 && p.command != "recover" {
 		return p, fmt.Errorf("--restore-missing requires recover")
 	}
+	launchFlags := seen["--profile"] || seen["--region"] || seen["--language"] || seen["--controller"] || seen["--target"] || p.selectLaunch
+	if p.command != "launch" && launchFlags {
+		return p, fmt.Errorf("launch options require launch command")
+	}
+	if p.command == "launch" {
+		for option, value := range map[string]string{"--profile": p.profile, "--region": p.region, "--language": p.language, "--controller": p.controller, "--target": p.target} {
+			if seen[option] && strings.TrimSpace(value) == "" {
+				return p, fmt.Errorf("%s needs a nonempty value", option)
+			}
+		}
+		if p.selectLaunch && (p.json || p.options.DryRun || p.profile != "" || p.region != "" || p.language != "" || p.controller != "" || p.target != "") {
+			return p, fmt.Errorf("--select cannot be combined with --json, --dry-run, --profile, or launch overrides")
+		}
+		provided := 0
+		for _, option := range []string{"--region", "--language", "--controller", "--target"} {
+			if seen[option] {
+				provided++
+			}
+		}
+		if p.profile == "" && provided != 0 && provided != 4 {
+			return p, fmt.Errorf("launch overrides require --region, --language, --controller, and --target")
+		}
+		if p.profile == "" && provided == 4 {
+			if _, err := launchSelection(p.region, p.language, p.controller, p.target); err != nil {
+				return p, err
+			}
+		}
+	}
 	if p.options.DryRun && (p.command == "doctor" || p.command == "list" || p.command == "status" || p.command == "verify") {
 		return p, fmt.Errorf("--dry-run is only for mutation commands")
 	}
 	return p, nil
 }
 
-func Run(args []string, stdout, stderr io.Writer, m *manager.Manager) int {
+func runOriginal(args []string, stdout, stderr io.Writer, m *manager.Manager) int {
 	wantsJSON := false
 	for _, v := range args {
 		if v == "--json" {

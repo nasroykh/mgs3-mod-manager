@@ -6,6 +6,7 @@ import (
 	"mgs3mod/internal/packagefmt"
 	"mgs3mod/internal/profile"
 	"mgs3mod/internal/transaction"
+	"time"
 )
 
 const stateDir = ".mgs3mod"
@@ -86,6 +87,14 @@ type Config struct {
 	Fault func(string) error
 	// CreateFile is an internal test seam. Production always uses exclusive os.Root creation.
 	CreateFile transaction.FileFactory
+	// Launch seams are private so production callers cannot replace process or
+	// atomic-move behavior. Manager tests use them without starting the game.
+	runLaunch     launchRunner
+	observeLaunch launchObserver
+	replaceLaunch func(string, string) error
+	moveLaunch    func(string, string) error
+	launchTimeout time.Duration
+	launchPoll    time.Duration
 }
 type Manager struct{ config Config }
 

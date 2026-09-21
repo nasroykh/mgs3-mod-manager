@@ -6,4 +6,7 @@ import (
 	"os"
 )
 
-func main() { os.Exit(cli.Run(os.Args[1:], os.Stdout, os.Stderr, manager.Production())) }
+func main() {
+	interactive := cli.InteractiveInput(os.Stdin)
+	os.Exit(cli.RunWithInput(os.Args[1:], os.Stdout, os.Stderr, manager.Production(), os.Stdin, interactive))
+}

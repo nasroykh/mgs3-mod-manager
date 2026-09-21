@@ -52,7 +52,7 @@ If the appearance does not change, leave this candidate disabled and investigate
 
 ## Scope and implementation decisions
 
-The manager is fixed to the recorded root and three complete fingerprints. It uses Go 1.27.1, the standard library, and pinned `golang.org/x/sys v0.48.0`. Production exposes no root override, environment bypass, test fault hook, mod scripts, or automatic downloads. Source lives entirely under `mgs3-mod-manager`; game assets and generated tools remain ignored in `work`, `dist`, and `.cache`. No Git repository was created or published.
+The manager is fixed to the recorded root and five complete fingerprints, including the launcher files required by direct launch. It uses Go 1.27.1, the standard library, and pinned `golang.org/x/sys v0.48.0`. Production exposes no environment bypass, test fault hook, mod scripts, or automatic downloads; `--game-root` accepts another directory only when all fingerprints match. Source lives entirely under the existing `mgs3-mod-manager` repository; game assets and generated tools remain ignored in `work`, `dist`, and `.cache`. The game directory itself is not a Git repository.
 
 An unchanged-input rendering smoke test was superseded by the stronger proof that the converter outputs every original byte exactly. This does not waive the actual recolor visual trial. Pre-ready cleanup removes only explicitly owned temporary names; promoted baselines and resolved journal recovery data remain retained. Records are bounded to 8 MiB, checked before journal creation.
 

@@ -23,6 +23,8 @@ The manager additionally checks complete SHA-256 identities. A different game bu
 | METAL GEAR SOLID3.exe | `0d585dcc6a671be5d64d3d0a856c53f9ee0e58e7e4993f76dff29772c7a4bc80` |
 | Engine.dll | `4067774bd2945dfab1a81ee0f657b3b6c9414b1b363d29830652e6d93c516996` |
 | Renderer.dll | `663199bce1a252861369710d62219a73d2855043ec955ab7e8a926ea13986ac1` |
+| launcher.exe | `e061111cef605bdbf0ea7bc9cf686a1d29e317bf1da923e3c92c52f523479784` |
+| launcher_Data/Managed/Assembly-CSharp.dll | `3f4de01b2de9e9efc31001c0ad376b294eaeec5dd092f7e681204e93684af945` |
 
 ## Managed standalone loader
 

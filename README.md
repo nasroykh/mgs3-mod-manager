@@ -10,7 +10,7 @@ The user reported successful gameplay with Crouch Walk and QCamo enabled togethe
 
 **Help test:** follow the [small-group tester guide](docs/tester-guide.md), then submit a [compatibility report](https://github.com/nasroykh/mgs3-mod-manager/issues/new?template=compatibility_report.md) or [bug report](https://github.com/nasroykh/mgs3-mod-manager/issues/new?template=bug_report.md). Review and redact diagnostics before posting publicly.
 
-The executable checks three compiled binary fingerprints. Select another installation of the same build with `--game-root <folder>`. Schema 1 supports existing textures; schema 2 adds absent-origin root `.asi` plugins; schema 3 manages the pinned standalone Ultimate ASI Loader. QCamo and its loader can both be installed through this manager, without MGSHDFix. The manager has no network service, dependency downloader, or background process.
+The executable checks five compiled binary fingerprints, including the launcher files required by direct launch. Select another installation of the same build with `--game-root <folder>`. Schema 1 supports existing textures; schema 2 adds absent-origin root `.asi` plugins; schema 3 manages the pinned standalone Ultimate ASI Loader. QCamo and its loader can both be installed through this manager, without MGSHDFix. The manager has no network service, dependency downloader, or background process.
 
 **QCamo and standalone ASI loader:** see the [current plan](docs/managed-asi-loader-plan.md), [package instructions](mods/qcamo/README.md), and [validation record](docs/asi-loader-validation.md). Earlier texture and external-loader checkpoints are historical and are not proof of gameplay testing.
 
@@ -58,6 +58,17 @@ mgs3mod verify --game-root $game
 ```
 
 Launch the game and hold **G** or **LB+Y**. No MGSHDFix is installed. Existing manual plugin/loader files and loader INI overrides are refused rather than overwritten. See [controls and known issues](mods/qcamo/README.md).
+
+## Direct launch from the manager
+
+Current source builds and the installed local development build add a startup-only direct-launch command. This command is not included in the published v0.2.0 binary. It bypasses the Master Collection selector for the tested North America/English installation while retaining the launcher path needed for clean shutdown:
+
+```powershell
+mgs3mod launch --select --game-root $game
+mgs3mod launch --profile na-startup --dry-run --json --game-root $game
+```
+
+The built-in `na-startup` profile uses keyboard prompts and is not written until an explicit selector save/default action. Saved preferences live in `mgs3mod-launch.json`, outside transactional mod state. The initial implementation does not claim a literal Main Menu destination and does not autoload saves. See [direct-launch usage, safety, and limits](docs/direct-launch.md) and the [local experiment log](docs/direct-launch-experiments.md).
 
 ## Import and manage other mods
 

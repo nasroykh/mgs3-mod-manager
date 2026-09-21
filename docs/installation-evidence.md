@@ -1,6 +1,6 @@
 # Installation evidence
 
-Inspected on 2026-09-19. These observations identify a local installation; they do not certify an official or unmodified release.
+Inspected on 2026-09-19; launcher fingerprints were added and rechecked on 2026-09-21. These observations identify a local installation; they do not certify an official or unmodified release.
 
 ## Target
 
@@ -20,8 +20,10 @@ Inspected on 2026-09-19. These observations identify a local installation; they 
 | `METAL GEAR SOLID3.exe` | 12948040 | `3.0.0.0` | `0d585dcc6a671be5d64d3d0a856c53f9ee0e58e7e4993f76dff29772c7a4bc80` |
 | `Engine.dll` | 1387520 | not populated | `4067774bd2945dfab1a81ee0f657b3b6c9414b1b363d29830652e6d93c516996` |
 | `Renderer.dll` | 7320718 | not populated | `663199bce1a252861369710d62219a73d2855043ec955ab7e8a926ea13986ac1` |
+| `launcher.exe` | 653824 | `2021.3.16.4200023` | `e061111cef605bdbf0ea7bc9cf686a1d29e317bf1da923e3c92c52f523479784` |
+| `launcher_Data/Managed/Assembly-CSharp.dll` | 459776 | `0.0.0.0` | `3f4de01b2de9e9efc31001c0ad376b294eaeec5dd092f7e681204e93684af945` |
 
-The executable's metadata is not a Steam build identifier. The installed manager is bound to all three fingerprints and the fixed directory. Each managed asset also has its own expected original hash.
+The executable's metadata is not a Steam build identifier. The manager build is bound to all five fingerprints and the fixed directory. Each managed asset also has its own expected original hash.
 
 ## Reproduction commands
 
@@ -41,7 +43,7 @@ Get-Command go,git,rg -ErrorAction SilentlyContinue
 git rev-parse --show-toplevel
 Get-ChildItem -LiteralPath assets -Directory
 
-$binaryFacts = foreach ($fileName in @('METAL GEAR SOLID3.exe','Engine.dll','Renderer.dll')) {
+$binaryFacts = foreach ($fileName in @('METAL GEAR SOLID3.exe','Engine.dll','Renderer.dll','launcher.exe','launcher_Data\Managed\Assembly-CSharp.dll')) {
     $item = Get-Item -LiteralPath $fileName
     $hashEngine = [System.Security.Cryptography.SHA256]::Create()
     $stream = [System.IO.File]::OpenRead($item.FullName)
@@ -71,7 +73,7 @@ $gameProcesses = @(Get-Process -Name 'METAL GEAR SOLID3','launcher' -ErrorAction
 ## Audit results and limitations
 
 - **CORRECT**: Go is installed and runnable. Evidence: the version and environment commands above.
-- **CORRECT**: The three binaries have the listed fingerprints. Counting method: one complete streaming SHA-256 computation per file, plus filesystem byte length.
+- **CORRECT**: The five binaries have the listed fingerprints. Counting method: one complete streaming SHA-256 computation per file, plus filesystem byte length.
 - **CORRECT**: No Git repository contains this directory. Evidence: `git rev-parse --show-toplevel` returned `fatal: not a git repository (or any of the parent directories): .git`.
 - **CORRECT**: Matching game/launcher process count was zero at inspection. Evidence: `MatchingProcessCount=0` from the command above. This is a point-in-time observation, not a launch lock.
 - **UNVERIFIABLE**: Official vanilla status and precise storefront build identity. Local converter round-trip correctness was later proved byte-for-byte, and the user later confirmed the HQ recolor rendered as a normal magenta uniform in game. Matched screenshots and a separate post-restoration visual launch were not captured.

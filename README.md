@@ -2,7 +2,7 @@
 
 A Windows command-line mod manager for the supported build of Metal Gear Solid 3: Master Collection. Install the compiled release without Go or Git, then import and manage texture mods and ASI plugins.
 
-[Download v0.2.0](https://github.com/nasroykh/mgs3-mod-manager/releases/tag/v0.2.0) · [Release notes](docs/releases/v0.2.0.md) · [Public verification](docs/releases/v0.2.0-validation.md)
+[Download v0.3.0](https://github.com/nasroykh/mgs3-mod-manager/releases/tag/v0.3.0) · [Release notes](docs/releases/v0.3.0.md)
 
 **Crouch Walk support (v0.2.0+):** [local-import instructions and limits](docs/crouch-walk.md). Users supply their own original Nexus download; no Crouch Walk payload is redistributed. Schema 4 is restricted to this exact mod and supported asset baseline. Do not downgrade to v0.1.0 after importing a schema-4 package, even after removing the mod.
 
@@ -22,17 +22,17 @@ Windows AMD64 and PowerShell 5.1+ are required. Download the installer, review i
 
 ```powershell
 $installer = Join-Path $env:TEMP ('mgs3mod-install-' + [guid]::NewGuid().ToString('N') + '.ps1')
-Invoke-WebRequest -UseBasicParsing 'https://raw.githubusercontent.com/nasroykh/mgs3-mod-manager/v0.2.0/install.ps1' -OutFile $installer
+Invoke-WebRequest -UseBasicParsing 'https://raw.githubusercontent.com/nasroykh/mgs3-mod-manager/v0.3.0/install.ps1' -OutFile $installer
 notepad $installer
 # After reviewing:
-powershell -NoProfile -ExecutionPolicy Bypass -File $installer -Version v0.2.0
+powershell -NoProfile -ExecutionPolicy Bypass -File $installer -Version v0.3.0
 ```
 
 The installer downloads the compiled release, requires a matching SHA-256 checksum, installs to `%LOCALAPPDATA%\Programs\mgs3mod`, and adds a user PATH entry. No admin rights, Git, or Go are needed. It does not install mods or change game files. Open a new terminal and run `mgs3mod --help`. The execution-policy override applies only to that process.
 
 Omit `-Version` for the latest release. For a custom directory without PATH changes, add `-InstallDir 'D:\Tools\mgs3mod' -NoPath`. If lookup fails, use `& "$env:LOCALAPPDATA\Programs\mgs3mod\mgs3mod.exe" --help`. Use `Get-Command mgs3mod -All` to detect conflicting copies.
 
-For manual installation, download `mgs3mod_0.2.0_windows_amd64.zip` and `checksums.txt` from [v0.2.0](https://github.com/nasroykh/mgs3-mod-manager/releases/tag/v0.2.0), compare `Get-FileHash` with its SHA-256 entry, extract it, and run `.\mgs3mod.exe --help`. GitHub's Source code ZIP is not the binary distribution. The executable is not Authenticode-signed; do not disable security software to bypass warnings.
+For manual installation, download `mgs3mod_0.3.0_windows_amd64.zip` and `checksums.txt` from [v0.3.0](https://github.com/nasroykh/mgs3-mod-manager/releases/tag/v0.3.0), compare `Get-FileHash` with its SHA-256 entry, extract it, and run `.\mgs3mod.exe --help`. GitHub's Source code ZIP is not the binary distribution. The executable is not Authenticode-signed; do not disable security software to bypass warnings.
 
 ## Quick start: game setup and QCamo
 
@@ -61,7 +61,7 @@ Launch the game and hold **G** or **LB+Y**. No MGSHDFix is installed. Existing m
 
 ## Direct launch from the manager
 
-Current source builds and the installed local development build add a startup-only direct-launch command. This command is not included in the published v0.2.0 binary. It bypasses the Master Collection selector for the tested North America/English installation while retaining the launcher path needed for clean shutdown:
+v0.3.0 can start the supported installation without the Master Collection selector. v0.2.0 does not include this command. The tested preset keeps the launcher path required for a clean shutdown:
 
 ```powershell
 mgs3mod launch --select --game-root $game

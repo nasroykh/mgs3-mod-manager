@@ -4,11 +4,11 @@ This text is ready to share after choosing the audience and checking the communi
 
 ---
 
-I'm looking for a few volunteers to try MGS3 Mod Manager v0.2.0 on Windows. It manages QCamo and can import your own MGS3 Crouch Walk 0.2.1 download, using a standalone ASI loader without MGSHDFix. No Go or Git installation is needed.
+I'm looking for a few volunteers to try MGS3 Mod Manager v0.3.0 on Windows. It manages QCamo, can import your own MGS3 Crouch Walk 0.2.1 download, and can start the supported North America/English installation without the Master Collection selector. It uses a standalone ASI loader without MGSHDFix. No Go or Git installation is needed.
 
 QCamo and Crouch Walk have worked together in a local gameplay test. Support is deliberately limited to a specific game build and asset baseline; the manager stops on unsupported installations. Please do not bypass those checks.
 
-- [Download v0.2.0 and installation instructions](https://github.com/nasroykh/mgs3-mod-manager#install-without-go-or-git)
+- [Download v0.3.0 and installation instructions](https://github.com/nasroykh/mgs3-mod-manager#install-without-go-or-git)
 - [Short tester checklist and safe reporting](https://github.com/nasroykh/mgs3-mod-manager/blob/main/docs/tester-guide.md)
 - [Crouch Walk local-import instructions](https://github.com/nasroykh/mgs3-mod-manager/blob/main/docs/crouch-walk.md)
 

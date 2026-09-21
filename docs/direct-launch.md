@@ -2,7 +2,7 @@
 
 Status: complete for the startup-only scope as of 2026-09-21. Save autoload, automatic Main Menu advancement, additional game configurations, and graphical controls are separate future features.
 
-Current source builds can start the supported MGS3 installation without opening the Master Collection selector. This feature requires an initialized manager and the exact compiled game fingerprints already enforced by other manager commands.
+v0.3.0 and current source builds can start the supported MGS3 installation without opening the Master Collection selector. v0.2.0 does not include this command. This feature requires an initialized manager and the exact compiled game fingerprints already enforced by other manager commands.
 
 The first supported preset is `na-startup`:
 
@@ -55,6 +55,6 @@ Dry-run still takes the manager lock briefly and performs fingerprint, initializ
 
 Launch preflight rejects an uninitialized manager, incompatible fingerprints, unresolved recovery, unsafe game or launcher paths, a running game or launcher, or another manager holding the lock. The game starts through a fixed argument array with the game directory as its working directory; no shell command is constructed. The lock remains held until the started PID is observed as the expected executable. A failed handoff never starts a second process. If the process remains alive but cannot be verified, the command waits with the lock held and reports failure only after exit; close the game to release that exceptional guard.
 
-A successful receipt means that the expected game process started. It does not prove that a particular screen was reached. Process and artifact evidence established collection-selector bypass, unchanged save payloads, QCamo loading, and intact manager state. The user observed manual loading of an existing save, QCamo changes, and Crouch Walk during the approved trials. The exact first game screen was not recorded, so `menu` remains unavailable and `startup` is the only honest destination.
+A successful receipt means that the expected game process started. It does not by itself prove that a particular screen was reached. Process evidence, a captured frame, and unchanged save payloads established collection-selector bypass for the installed manager. On 2026-09-21 that launch reached the in-game DATA LOAD screen; the frame before that screen was not captured. The user observed manual loading of an existing save, QCamo changes, and Crouch Walk during the earlier native-argument trials. `menu` remains unavailable and `startup` is the only honest destination.
 
 Other regions, languages, controller-prompt modes, game builds, and distribution layouts are rejected until tested. Save autoload is not implemented. See [the experiment log](direct-launch-experiments.md) for local evidence and [the implementation plan](direct-launch-plan.md) for the gated save-autoload research.

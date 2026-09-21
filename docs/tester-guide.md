@@ -5,7 +5,7 @@ Start with a few volunteers who already own MGS3 Master Collection. Windows AMD6
 ## Get ready
 
 1. Use your own game installation and keep a private backup of important saves using your normal backup method. Do not upload saves or game files.
-2. Install [MGS3 Mod Manager v0.2.0](https://github.com/nasroykh/mgs3-mod-manager/releases/tag/v0.2.0) using the [README](../README.md#install-without-go-or-git). Verify checksums. Go and Git are not required.
+2. Install [MGS3 Mod Manager v0.3.0](https://github.com/nasroykh/mgs3-mod-manager/releases/tag/v0.3.0) using the [README](../README.md#install-without-go-or-git). Verify checksums. Go and Git are not required. v0.2.0 has no direct-launch command.
 3. Use your actual game path with `--game-root`. Close the game and launcher before manager changes. Run `doctor`; stop if the build is unsupported. Do not bypass fingerprint checks or change game files to force compatibility.
 4. Follow the [QCamo setup](../README.md#quick-start-game-setup-and-qcamo) and, optionally, [Crouch Walk local-import instructions](crouch-walk.md). Each tester must obtain their own original Nexus Crouch Walk download. Do not share its original archive or generated package.
 5. Record the manager release and executable used, mod versions, game/store version and language, Windows version, input device, and other installed mods. Redact personal path components. Use the updated executable explicitly if several copies exist.
@@ -19,6 +19,7 @@ Use an existing safe save/checkpoint. Record Pass, Fail, or Not tested for each 
 | Area | What to exercise | Evidence to report |
 | --- | --- | --- |
 | Preflight and install | Doctor, documented add/enable, then verify | Commands, exit result, or exact error |
+| Direct launch | On the supported North America/English install, `mgs3mod launch --profile na-startup --game-root <your-game-folder>` | Whether the collection selector was skipped; close the game yourself |
 | QCamo | Open menu, select owned camo and face paint, repeat swaps | Input device, menu/selection result |
 | Crouch Walk | Slow/fast movement and stand/prone transitions | Movement and animation result; mark unsupported input cases not tested |
 | Controls and weapons | Switch weapons and enter/leave first-person view | Any stuck input, incorrect motion, or view problem |

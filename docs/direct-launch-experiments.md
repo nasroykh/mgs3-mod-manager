@@ -35,8 +35,20 @@ Date: 2026-09-21. Game executable SHA-256: `0D585DCC6A671BE5D64D3D0A856C53F9EE0E
 - Post-launch manager verification: `mgs3mod.exe verify --json` returned `ok: true` at generation 15 with initialized and compatible state.
 - Decision: omission of `-launcherpath launcher.exe` is rejected. Gameplay worked, but its shutdown access violation fails the plan's acceptable-exit requirement. The supported preset retains `-launcherpath launcher.exe`.
 
+## Trial 4: installed manager `na-startup`
+
+- Command: `mgs3mod.exe launch --profile na-startup --json --game-root 'C:\Games\METAL GEAR SOLID 3 - MCV'`, using the game-folder executable.
+- Result: exit 0. Receipt `executable` `C:\Games\METAL GEAR SOLID 3 - MCV\METAL GEAR SOLID3.exe`, working directory the game root, arguments `-region us -lan en -selfregion EU -launcherpath launcher.exe -ctrltype KBD`, selection `us`/`en`/`kbd`/`startup`, PID 52380, message `game process started and executable verified`.
+- Process check after the window appeared: the same PID remained, responding, with main-window title `METAL GEAR SOLID 3 SNAKE EATER` and that exact command line. No `launcher.exe` process was present.
+- Visible result: a 1920x1080 capture about twelve seconds after the receipt showed the in-game DATA LOAD screen, slot 001, HARD, date 2026.09.19, time 0000:47:58, with YES/NO. That is inside MGS3, not the Master Collection selector. The capture is `work/launch-na-startup-20260921.png`. The frame before DATA LOAD was not recorded.
+- Exit: `CloseMainWindow` returned true and PID 52380 exited. No game or launcher process remained.
+- Saves: both files in `STE1316501G000001` kept their pre-launch sizes, timestamps, and SHA-256 values. `launcher_sv` was unchanged. `usersv` stayed 4,096 bytes and changed from `8D56EFF4256937823DC1C7D7E0BC302977E27A9C5104B679F4B5EF0BE2AA2749` to `9E53026D42F004682C3C455151C3E125BCD46317F1EFE95E64D57A7FFA67FF5E` at 21:48:19 UTC. Same class of launcher-settings change as Trial 2, not a game-save rewrite.
+- QCamo: `qcamo.log` was updated at 21:47:27 UTC and recorded readiness plus `inventory table found`. `qcamo-crash.dmp` stayed at its Trial 3 timestamp, 11:24:56 UTC.
+- Preferences: `mgs3mod-launch.json` was not created. Crouch Walk gameplay was not exercised in this trial.
+- Manager: `verify --json` exited 0, compatible and initialized, generation 15.
+
 ## Gate status
 
 Phase 0 supports a startup-only implementation using the full Trial 2 argument array, including `-launcherpath launcher.exe`. Across both native trials, the collection selector was bypassed, an existing save loaded manually, QCamo and Crouch Walk worked, game-save payloads remained intact, and manager verification passed. Trial 2 also had a clean manual close without observed launcher reopening. Trial 3 proves that omitting the launcher path is unsafe on this installation because shutdown produced a new access-violation dump.
 
-The exact first game screen remains UNVERIFIABLE, so expose destination `startup` and preset `na-startup`; keep literal `menu` unavailable. Only the tested North America, English, and KBD argument combination is initially supported. Phase 1 and Phase 2 may proceed within that capability. Save autoload remains gated.
+Trial 4 shows the installed manager reaching DATA LOAD without the collection selector. The exact first frame remains unrecorded, so expose destination `startup` and preset `na-startup`; keep literal `menu` unavailable. Only the tested North America, English, and KBD argument combination is initially supported. Phase 1 and Phase 2 may proceed within that capability. Save autoload remains gated.

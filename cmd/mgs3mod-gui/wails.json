@@ -1,0 +1,12 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "mgs3mod-gui",
+  "outputfilename": "mgs3mod-gui",
+  "frontend:install": "",
+  "frontend:build": "",
+  "info": {
+    "productName": "MGS3 Mod Manager",
+    "productVersion": "0.4.0",
+    "comments": "Window app for the MGS3 mod manager"
+  }
+}

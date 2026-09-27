@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MGS3 Mod Manager</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="icons.svg#i-device-gamepad-2"/></svg></span>
+      <div>
+        <h1>MGS3 Mod Manager</h1>
+        <p class="muted small">Master Collection · <span id="version"></span></p>
+      </div>
+    </div>
+    <button id="recheck" type="button" class="btn ghost" data-needs-root>
+      <svg class="icon" aria-hidden="true"><use href="icons.svg#i-refresh"/></svg><span>Re-check</span>
+    </button>
+  </header>
+
+  <main>
+    <section class="card" aria-labelledby="folder-title">
+      <div class="card-head">
+        <svg class="icon card-icon" aria-hidden="true"><use href="icons.svg#i-folder"/></svg>
+        <h2 id="folder-title">Game folder</h2>
+      </div>
+      <div class="row">
+        <select id="folder" aria-label="Game folder"></select>
+        <button id="browse" type="button" class="btn">
+          <svg class="icon" aria-hidden="true"><use href="icons.svg#i-folder-open"/></svg><span>Browse…</span>
+        </button>
+      </div>
+      <p id="folder-note" class="muted small" hidden></p>
+      <div class="status-row">
+        <div id="doctor" class="badge" role="status" aria-live="polite"></div>
+        <button id="copy" type="button" class="btn ghost small" hidden>
+          <svg class="icon" aria-hidden="true"><use href="icons.svg#i-copy"/></svg><span>Copy details</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card" aria-labelledby="delta-title">
+        <div class="card-head">
+          <svg class="icon card-icon" aria-hidden="true"><use href="icons.svg#i-package"/></svg>
+          <h2 id="delta-title">Delta controls</h2>
+        </div>
+        <p class="muted small">First-person walking, over-the-shoulder aiming and the QCamo face paint menu. Installs the ASI loader, fpv-move and QCamo face paint from this kit folder.</p>
+        <div id="delta" class="badge" role="status" aria-live="polite"></div>
+        <p id="kit" class="muted small"></p>
+        <div class="actions">
+          <button id="install" type="button" class="btn primary" data-needs-root>
+            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg><span>Install / Update</span>
+          </button>
+          <button id="uninstall" type="button" class="btn destructive-outline" data-needs-root>
+            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-trash"/></svg><span>Uninstall</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="play-title">
+        <div class="card-head">
+          <svg class="icon card-icon" aria-hidden="true"><use href="icons.svg#i-player-play"/></svg>
+          <h2 id="play-title">Play</h2>
+        </div>
+        <p class="muted small">Starts the game directly, skipping the Master Collection menus, with the settings of a launch profile.</p>
+        <label for="profile" class="label">Launch profile</label>
+        <div class="row">
+          <select id="profile" data-needs-root></select>
+          <button id="profile-edit" type="button" class="btn ghost small" data-needs-root>
+            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-pencil"/></svg><span>Edit…</span>
+          </button>
+          <button id="profile-new" type="button" class="btn small" data-needs-root>
+            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span>New profile…</span>
+          </button>
+        </div>
+        <p class="profile-line"><span id="profile-desc" class="muted small"></span><span id="profile-tested" class="tag" hidden></span></p>
+        <div class="actions">
+          <button id="launch" type="button" class="btn primary" data-needs-root>
+            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-player-play"/></svg><span>Launch game</span>
+          </button>
+        </div>
+        <p id="launch-note" class="callout" hidden></p>
+      </section>
+    </div>
+
+    <section class="card" aria-labelledby="mods-title">
+      <button id="mods-toggle" type="button" class="card-toggle" aria-expanded="false" aria-controls="mods-body">
+        <svg class="icon card-icon" aria-hidden="true"><use href="icons.svg#i-puzzle"/></svg>
+        <span id="mods-title" class="h2">Mods</span>
+        <span class="pill" id="mods-count">0</span>
+        <span class="muted small grow">Advanced</span>
+        <svg class="icon chev" aria-hidden="true"><use href="icons.svg#i-chevron-down"/></svg>
+      </button>
+      <div id="mods-body" hidden>
+        <table>
+          <caption class="sr-only">Mods stored for this game folder</caption>
+          <thead><tr><th scope="col">Mod</th><th scope="col">Version</th><th scope="col" class="right">On</th></tr></thead>
+          <tbody id="mods"></tbody>
+        </table>
+        <div id="mods-empty" class="empty" hidden>
+          <svg class="icon" aria-hidden="true"><use href="icons.svg#i-puzzle"/></svg>
+          <p>No mods stored in this game folder yet.</p>
+        </div>
+        <div class="actions">
+          <button id="add" type="button" class="btn" data-needs-root>
+            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span>Add mod package…</span>
+          </button>
+          <button id="verify" type="button" class="btn" data-needs-root>
+            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-shield-check"/></svg><span>Verify</span>
+          </button>
+          <button id="open" type="button" class="btn ghost" data-needs-root>
+            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-folder-open"/></svg><span>Open game folder</span>
+          </button>
+        </div>
+        <p class="muted small">Turning on two mods that change the same file is refused. The game folder holds fpvmove.log and qcamo.log for reports.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="muted small">
+    <svg class="icon" aria-hidden="true"><use href="icons.svg#i-info-circle"/></svg>
+    Close the game and the Master Collection launcher before installing or changing mods.
+  </footer>
+</div>
+
+<div id="overlay" class="overlay" hidden>
+  <div id="dialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title" aria-describedby="dlg-sub">
+    <div class="dialog-head">
+      <span id="dlg-icon" class="dlg-icon"></span>
+      <div class="grow">
+        <h2 id="dlg-title"></h2>
+        <p id="dlg-sub" class="muted small"></p>
+      </div>
+      <span id="dlg-time" class="muted small mono" aria-hidden="true"></span>
+    </div>
+    <div id="dlg-progress" class="progress" role="progressbar" aria-label="Steps done" aria-valuemin="0" hidden><div id="dlg-bar"></div></div>
+    <ol id="dlg-steps" class="steps"></ol>
+    <div id="dlg-form" class="form" hidden></div>
+    <p id="dlg-note" class="callout" hidden></p>
+    <div id="dlg-result" class="banner" role="alert" hidden></div>
+    <details id="dlg-details" hidden>
+      <summary>Details</summary>
+      <pre id="dlg-pre"></pre>
+      <button id="dlg-copy" type="button" class="btn ghost small">
+        <svg class="icon" aria-hidden="true"><use href="icons.svg#i-copy"/></svg><span>Copy</span>
+      </button>
+    </details>
+    <div id="dlg-actions" class="dialog-actions"></div>
+    <div id="announce" class="sr-only" aria-live="polite"></div>
+  </div>
+</div>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>

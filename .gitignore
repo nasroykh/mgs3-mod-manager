@@ -6,3 +6,5 @@
 *.ctxr
 *.dds
 *.param
+/cmd/mgs3mod-gui/build/
+/cmd/mgs3mod-gui/frontend/wailsjs/

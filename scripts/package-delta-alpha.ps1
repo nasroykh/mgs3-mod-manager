@@ -1,12 +1,14 @@
 #Requires -Version 5.1
 # Build the Delta controls tester kit for a prerelease from the release's own
-# manager zip and loader package plus the locally played plugin packages. The
-# plugin payloads are pinned to the played builds; anything else is refused.
+# manager zip, window app zip and loader package plus the locally played plugin
+# packages. The plugin payloads are pinned to the played builds; anything else
+# is refused.
 param(
     [Parameter(Mandatory = $true)][ValidatePattern('^v[0-9]+\.[0-9]+\.[0-9]+-(alpha|beta|rc)\.[0-9]+$')][string]$Version,
     [Parameter(Mandatory = $true)][string]$ManagerZip,
     [Parameter(Mandatory = $true)][string]$LoaderPackage,
-    # The release draft's checksums.txt; both inputs must match its entries.
+    [Parameter(Mandatory = $true)][string]$GuiZip,
+    # The release draft's checksums.txt; the three release inputs must match its entries.
     [Parameter(Mandatory = $true)][string]$Checksums,
     [string]$OutputDirectory = ''
 )
@@ -18,13 +20,15 @@ $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 # PowerShell location, so resolve every input here.
 $ManagerZip = (Resolve-Path -LiteralPath $ManagerZip).ProviderPath
 $LoaderPackage = (Resolve-Path -LiteralPath $LoaderPackage).ProviderPath
+$GuiZip = (Resolve-Path -LiteralPath $GuiZip).ProviderPath
 $Checksums = (Resolve-Path -LiteralPath $Checksums).ProviderPath
 if (!$OutputDirectory) { $OutputDirectory = Join-Path $projectRoot "dist/delta-$Version" }
 $OutputDirectory = $PSCmdlet.GetUnresolvedProviderPathFromPSPath($OutputDirectory)
 $sumLines = @(Get-Content -LiteralPath $Checksums)
 $expectedInputs = [ordered]@{
-    ('mgs3mod_' + $Version.Substring(1) + '_windows_amd64.zip') = $ManagerZip
-    'asi-loader-9.7.4.mgs3mod.zip'                              = $LoaderPackage
+    ('mgs3mod_' + $Version.Substring(1) + '_windows_amd64.zip')     = $ManagerZip
+    ('mgs3mod-gui_' + $Version.Substring(1) + '_windows_amd64.zip') = $GuiZip
+    'asi-loader-9.7.4.mgs3mod.zip'                                  = $LoaderPackage
 }
 foreach ($name in $expectedInputs.Keys) {
     if ([IO.Path]::GetFileName($expectedInputs[$name]) -cne $name) { throw "Input must be the release's $name, got $($expectedInputs[$name])" }
@@ -40,6 +44,7 @@ $plugins = [ordered]@{
     'qcamo-face-1.0.4-face.4.mgs3mod.zip' = @('6c40bdaf6ddff2138294c02a1afa1b5e833afc23c4c929db0f99abe9e5d4a44a', 'work/qcamo-face-1.0.4-face.4.zip')
 }
 $managerMembers = @('mgs3mod.exe', 'README.md', 'THIRD-PARTY-NOTICES.txt')
+$guiMembers = @('mgs3mod-gui.exe', 'README.md', 'THIRD-PARTY-NOTICES-GUI.txt')
 
 function Get-Sha256([byte[]]$Bytes) {
     $sha = [Security.Cryptography.SHA256]::Create()
@@ -66,6 +71,10 @@ $members = [ordered]@{}
 $managerNames = Get-Names $ManagerZip
 if (Compare-Object $managerMembers $managerNames) { throw 'Unexpected manager zip members' }
 foreach ($name in $managerMembers) { $members[$name] = Read-Member $ManagerZip $name }
+$guiNames = Get-Names $GuiZip
+if (Compare-Object $guiMembers $guiNames) { throw 'Unexpected window app zip members' }
+# The kit carries the window app at its root, next to the packages it installs.
+foreach ($name in @('mgs3mod-gui.exe', 'THIRD-PARTY-NOTICES-GUI.txt')) { $members[$name] = Read-Member $GuiZip $name }
 $members['asi-loader-9.7.4.mgs3mod.zip'] = [IO.File]::ReadAllBytes([IO.Path]::GetFullPath($LoaderPackage))
 foreach ($name in $plugins.Keys) {
     $source = Join-Path $projectRoot $plugins[$name][1]

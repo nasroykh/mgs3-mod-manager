@@ -21,7 +21,7 @@ func TestSelectionRejectsInvalidAndUnsupported(t *testing.T) {
 		"language":    func(s *Selection) { s.Language = Language("xx") },
 		"controller":  func(s *Selection) { s.Controller = Controller("xx") },
 		"destination": func(s *Selection) { s.Destination = DestinationMenu },
-		"combination": func(s *Selection) { s.Region = RegionEU },
+		"combination": func(s *Selection) { s.Region = RegionJP },
 	} {
 		t.Run(name, func(t *testing.T) {
 			s := base
@@ -30,6 +30,40 @@ func TestSelectionRejectsInvalidAndUnsupported(t *testing.T) {
 				t.Fatal("accepted unsupported selection")
 			}
 		})
+	}
+}
+
+// The launcher offers these region/language pairs and five button prompt
+// types; everything else is refused, including Japan (it needs a download).
+func TestLauncherCombinations(t *testing.T) {
+	allowed := map[string]bool{"us/en": true, "us/fr": true, "us/sp": true, "eu/en": true, "eu/fr": true, "eu/it": true, "eu/gr": true, "eu/sp": true}
+	ctrl := map[Controller]string{ControllerKeyboard: "KBD", ControllerXbox: "XBOX", ControllerPS4: "PS4", ControllerPS5: "PS5", ControllerNX: "NX"}
+	accepted, tested := 0, 0
+	for _, r := range []Region{RegionJP, RegionUS, RegionEU} {
+		for _, l := range []Language{LanguageJapanese, LanguageEnglish, LanguageFrench, LanguageItalian, LanguageGerman, LanguageSpanish} {
+			for c, arg := range ctrl {
+				s := Selection{Region: r, Language: l, Controller: c, Destination: DestinationStartup}
+				got, err := BuildArguments(s)
+				if allowed[string(r)+"/"+string(l)] != (err == nil) {
+					t.Errorf("%s/%s/%s: err=%v", r, l, c, err)
+					continue
+				}
+				if err != nil {
+					continue
+				}
+				accepted++
+				want := []string{"-region", string(r), "-lan", string(l), "-selfregion", "EU", "-launcherpath", "launcher.exe", "-ctrltype", arg}
+				if !reflect.DeepEqual(got, want) {
+					t.Errorf("%s/%s/%s: %q", r, l, c, got)
+				}
+				if s.Tested() {
+					tested++
+				}
+			}
+		}
+	}
+	if accepted != 40 || tested != 2 {
+		t.Fatalf("accepted %d, tested %d; want 40 and 2", accepted, tested)
 	}
 }
 

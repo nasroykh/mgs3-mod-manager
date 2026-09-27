@@ -1,6 +1,6 @@
 # Delta controls: what has not been tested
 
-Date: 2026-09-27. Scope: `fpv-move` 0.8.4 and `qcamo-face` 1.0.4-face.4. All play so far was on one install (see [delta-controls-plan.md](delta-controls-plan.md)): the pinned executable, the North America/English startup profile, a wired Xbox Series X pad without Valve Steam Input, and the keyboard and mouse. Since 0.6.9 every play session was on the pad only. Evidence for each line below is the saved play logs (`work/fpv-move-trace-20260924/`, local only) and the user's reports in the plan; "never seen" means no line for it in any saved log.
+Date: 2026-09-27. Scope: `fpv-move` 0.8.4, `qcamo-face` 1.0.4-face.4, and the window app `mgs3mod-gui.exe` (v0.4.0-alpha.2). All play so far was on one install (see [delta-controls-plan.md](delta-controls-plan.md)): the pinned executable, the North America/English startup profile, a wired Xbox Series X pad without Valve Steam Input, and the keyboard and mouse. Since 0.6.9 every play session was on the pad only. Evidence for each line below is the saved play logs (`work/fpv-move-trace-20260924/`, local only) and the user's reports in the plan; "never seen" means no line for it in any saved log.
 
 Keep this list current: when a tester or a play session covers an item, move it to the plan with the log evidence and delete it here.
 
@@ -12,6 +12,19 @@ Keep this list current: when a tester or a play session covers an item, move it 
 - **Other controllers.** PlayStation pads (DualShock 4, DualSense), wireless Xbox pads, Steam Deck, and other XInput devices. The window stick and the QCamo fork read XInput slots 0 to 3 as a fallback.
 - **MGSHDFix.** Must not be installed beside `fpv-move` (both own `aimingState`); nothing checks this at install.
 - **Other mods.** Only Ultimate ASI Loader 9.7.4 and Crouch Walk 0.2.1 were enabled beside these two.
+
+## The window app (mgs3mod-gui.exe)
+
+Tested on one PC only: Windows 11 with the WebView2 runtime installed, display scaling at 100%, the dark Windows theme, and a game folder outside any Steam library (chosen with Browse). Its Install, Uninstall and Mods flows have automated tests against test fixtures and were run on a copy of the game folder and on the real install.
+
+- **Launch profiles other than the two played ones** (North America, English, keyboard prompts; Europe, French, Xbox prompts). Since v0.4.0-alpha.2 the manager and the app accept every region, language and button-prompt combination the official launcher offers without extra downloads (38 not played; Japan is refused). They pass the launcher's own arguments but were never run: not known whether the game then shows the chosen language and prompts, whether the Europe region reads the same saves, or whether a controller prompt setting behaves differently with Valve Steam Input.
+- **Quick launch on a Steam copy.** **Launch game** (the manager's direct launch with the built-in North America, English, keyboard prompts profile) was never tried on a Steam copy. The Steam wrapper may refuse a start that does not come from Steam; the app then says the game closed right after starting.
+- **Steam library detection.** Reading Steam's registry entry and `libraryfolders.vdf` is tested only with made-up files; no real Steam install with MGS3 was detected, and neither were several libraries or a game on a second drive.
+- **Windows 10**, and a PC **without the WebView2 runtime** (the app should offer to download it).
+- **SmartScreen** on a freshly downloaded kit ("More info", "Run anyway"), and antivirus programs other than Microsoft Defender.
+- **Display scaling above 100%** (for example 150%), the light Windows theme, high contrast, and screen readers.
+- **Game folders with non-English characters** in the path.
+- Running the app while the command-line manager changes the same game folder. Both take the manager's lock, so one of them should refuse with "Another copy of the manager is changing this game folder"; not tried with the app.
 
 ## Weapons not reached in the save
 

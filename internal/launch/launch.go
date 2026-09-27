@@ -81,11 +81,55 @@ func (s Selection) Validate() error {
 	if s.Destination != DestinationStartup {
 		return fmt.Errorf("unsupported destination %q", s.Destination)
 	}
-	if s.Region != RegionUS || s.Language != LanguageEnglish || s.Controller != ControllerKeyboard {
-		return fmt.Errorf("unsupported launch combination: region=%q language=%q controller=%q", s.Region, s.Language, s.Controller)
+	if !regionLanguage(s.Region, s.Language) {
+		return fmt.Errorf("unsupported launch combination: region=%q language=%q", s.Region, s.Language)
 	}
 	return nil
 }
+
+// RegionLanguages lists the languages the official launcher offers for each
+// game region (the language lists in GameLanguageSelectMGS3::FrameUpdate).
+// Japan is left out: the launcher offers it only when a Steam download is
+// installed (RegionSelectMGS3::FrameUpdate, DefManager::SetDLInfo), and the
+// manager cannot tell that download apart yet.
+var RegionLanguages = map[Region][]Language{
+	RegionUS: {LanguageEnglish, LanguageFrench, LanguageSpanish},
+	RegionEU: {LanguageEnglish, LanguageFrench, LanguageItalian, LanguageGerman, LanguageSpanish},
+}
+
+func regionLanguage(r Region, l Language) bool {
+	for _, allowed := range RegionLanguages[r] {
+		if allowed == l {
+			return true
+		}
+	}
+	return false
+}
+
+// TestedSelections were played through a manager launch on a real install:
+// North America, English, keyboard prompts (2026-09-21) and Europe, French,
+// Xbox prompts (2026-09-27, French text and Xbox prompts seen in game).
+var TestedSelections = []Selection{
+	{Region: RegionUS, Language: LanguageEnglish, Controller: ControllerKeyboard, Destination: DestinationStartup},
+	{Region: RegionEU, Language: LanguageFrench, Controller: ControllerXbox, Destination: DestinationStartup},
+}
+
+// Tested reports whether this exact selection was played. The other
+// selections use the launcher's own arguments but were never run.
+func (s Selection) Tested() bool {
+	for _, t := range TestedSelections {
+		if s == t {
+			return true
+		}
+	}
+	return false
+}
+
+// ctrlTypeArguments are the launcher's -ctrltype values (Def::.cctor).
+var ctrlTypeArguments = map[Controller]string{
+	ControllerXbox: "XBOX", ControllerPS4: "PS4", ControllerPS5: "PS5", ControllerNX: "NX", ControllerKeyboard: "KBD",
+}
+
 func validRegion(v Region) bool { return v == RegionUS || v == RegionJP || v == RegionEU }
 func validLanguage(v Language) bool {
 	switch v {
@@ -105,7 +149,9 @@ func BuildArguments(s Selection) ([]string, error) {
 	if err := s.Validate(); err != nil {
 		return nil, err
 	}
-	return []string{"-region", string(s.Region), "-lan", string(s.Language), "-selfregion", "EU", "-launcherpath", "launcher.exe", "-ctrltype", "KBD"}, nil
+	// The launcher build always passes its own region as EU (Def::regionLauncher)
+	// and the button prompts of the controller it detected.
+	return []string{"-region", string(s.Region), "-lan", string(s.Language), "-selfregion", "EU", "-launcherpath", "launcher.exe", "-ctrltype", ctrlTypeArguments[s.Controller]}, nil
 }
 func (c Config) Validate() error {
 	if c.Schema != SchemaVersion {

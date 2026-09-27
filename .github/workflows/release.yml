@@ -85,10 +85,10 @@ jobs:
           $tag = $env:RELEASE_TAG
           $dir = Join-Path $PWD "dist/release-$tag"
           $assets = @(Get-ChildItem -LiteralPath $dir -File | ForEach-Object FullName)
-          $expected = @("mgs3mod_$($tag.Substring(1))_windows_amd64.zip", 'asi-loader-9.7.4.mgs3mod.zip', 'qcamo-1.0.4.mgs3mod.zip', 'qcamo-1.0.4-standalone-distribution.zip', 'install.ps1', 'checksums.txt')
-          if ($assets.Count -ne 6 -or (Compare-Object $expected @(Get-ChildItem -LiteralPath $dir -File | ForEach-Object Name))) { throw 'Unexpected release asset set' }
+          $expected = @("mgs3mod_$($tag.Substring(1))_windows_amd64.zip", "mgs3mod-gui_$($tag.Substring(1))_windows_amd64.zip", 'asi-loader-9.7.4.mgs3mod.zip', 'qcamo-1.0.4.mgs3mod.zip', 'qcamo-1.0.4-standalone-distribution.zip', 'install.ps1', 'checksums.txt')
+          if ($assets.Count -ne 7 -or (Compare-Object $expected @(Get-ChildItem -LiteralPath $dir -File | ForEach-Object Name))) { throw 'Unexpected release asset set' }
           $sums = @(Get-Content -LiteralPath (Join-Path $dir 'checksums.txt'))
-          if ($sums.Count -ne 5) { throw 'Unexpected checksum count' }
+          if ($sums.Count -ne 6) { throw 'Unexpected checksum count' }
           foreach ($name in $expected | Where-Object { $_ -ne 'checksums.txt' }) {
             $entry = @($sums | Where-Object { $_ -cmatch ('^[a-f0-9]{64}  ' + [regex]::Escape($name) + '$') })
             if ($entry.Count -ne 1 -or (Get-FileHash -LiteralPath (Join-Path $dir $name)).Hash.ToLowerInvariant() -cne $entry[0].Substring(0,64)) { throw "Checksum failed: $name" }

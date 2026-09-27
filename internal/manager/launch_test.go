@@ -142,6 +142,62 @@ func TestLaunchProfileUpdatesMergeLatestConfiguration(t *testing.T) {
 	}
 }
 
+func TestLaunchProfileUpdateAndRemove(t *testing.T) {
+	m, _, selection := launchFixture(t)
+	eu := launch.Selection{Region: launch.RegionEU, Language: launch.LanguageGerman, Controller: launch.ControllerPS5, Destination: launch.DestinationStartup}
+	if _, err := m.PutLaunchProfile("missing", "missing", launch.Profile{Selection: eu}, false); ExitCode(err) != 2 {
+		t.Fatalf("update of a missing profile: %v", err)
+	}
+	if _, err := m.RemoveLaunchProfile(launch.SeedProfileID); ExitCode(err) != 2 {
+		t.Fatalf("removed the only profile: %v", err)
+	}
+	if _, err := m.AddLaunchProfile("eu-pad", launch.Profile{Selection: selection}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.PutLaunchProfile("eu-pad", "eu-pad", launch.Profile{Selection: eu}, false); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.PutLaunchProfile("eu-pad", "eu-pad", launch.Profile{Selection: launch.Selection{Region: launch.RegionUS, Language: launch.LanguageGerman, Controller: launch.ControllerKeyboard, Destination: launch.DestinationStartup}}, false); ExitCode(err) != 2 {
+		t.Fatalf("accepted a combination the launcher refuses: %v", err)
+	}
+	// Rename the default in one update: it stays the default; a rename onto an
+	// existing ID or from a missing one is refused and changes nothing.
+	if _, err := m.PutLaunchProfile("eu-pad", "eu-pad2", launch.Profile{Selection: eu}, true); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.PutLaunchProfile("eu-pad2", launch.SeedProfileID, launch.Profile{Selection: eu}, false); ExitCode(err) != 2 {
+		t.Fatalf("rename onto an existing profile: %v", err)
+	}
+	if _, err := m.PutLaunchProfile("gone", "new", launch.Profile{Selection: eu}, false); ExitCode(err) != 2 {
+		t.Fatalf("rename of a missing profile: %v", err)
+	}
+	loaded, err := m.LoadLaunchConfig()
+	if err != nil || loaded.Config.DefaultProfileID != "eu-pad2" || len(loaded.Config.Profiles) != 2 {
+		t.Fatalf("after rename: %+v %v", loaded.Config, err)
+	}
+	if _, err := m.PutLaunchProfile("eu-pad2", "eu-pad", launch.Profile{Selection: eu}, false); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.SetDefaultLaunchProfile(launch.SeedProfileID); err != nil {
+		t.Fatal(err)
+	}
+	config, err := m.RemoveLaunchProfile(launch.SeedProfileID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if config.DefaultProfileID != "eu-pad" || len(config.Profiles) != 1 || config.Profiles["eu-pad"].Selection != eu {
+		t.Fatalf("after removing the default: %+v", config)
+	}
+	loaded, err = m.LoadLaunchConfig()
+	if err != nil || !loaded.Persisted || loaded.Config.DefaultProfileID != "eu-pad" {
+		t.Fatalf("persisted: %+v %v", loaded, err)
+	}
+	receipt, err := m.Launch(eu, true)
+	if err != nil || receipt.Arguments[1] != "eu" || receipt.Arguments[3] != "gr" || receipt.Arguments[9] != "PS5" {
+		t.Fatalf("dry run: %+v %v", receipt, err)
+	}
+}
+
 func TestSaveLaunchConfigRejectsOversizeBeforePromotion(t *testing.T) {
 	oversize := launch.Seed()
 	selection := oversize.Profiles[launch.SeedProfileID].Selection

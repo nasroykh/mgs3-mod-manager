@@ -191,6 +191,55 @@ func (m *Manager) SetDefaultLaunchProfile(id string) (launch.Config, error) {
 	})
 }
 
+// PutLaunchProfile creates (original == ""), changes (original == id) or
+// renames (original != id) a profile in one atomic update, and optionally
+// makes it the default. A renamed default stays the default.
+func (m *Manager) PutLaunchProfile(original, id string, profile launch.Profile, makeDefault bool) (launch.Config, error) {
+	return m.updateLaunchConfig(func(config *launch.Config) error {
+		_, exists := config.Profiles[id]
+		switch {
+		case original == "" || original != id:
+			if exists {
+				return fail(2, "launch profile "+id+" already exists")
+			}
+			if original != "" {
+				if _, ok := config.Profiles[original]; !ok {
+					return fail(2, "launch profile "+original+" does not exist")
+				}
+				delete(config.Profiles, original)
+				if config.DefaultProfileID == original {
+					config.DefaultProfileID = id
+				}
+			}
+		case !exists:
+			return fail(2, "launch profile "+id+" does not exist")
+		}
+		config.Profiles[id] = profile
+		if makeDefault {
+			config.DefaultProfileID = id
+		}
+		return nil
+	})
+}
+
+// RemoveLaunchProfile atomically deletes a profile. The last profile cannot be
+// removed; removing the default makes the first remaining profile the default.
+func (m *Manager) RemoveLaunchProfile(id string) (launch.Config, error) {
+	return m.updateLaunchConfig(func(config *launch.Config) error {
+		if _, exists := config.Profiles[id]; !exists {
+			return fail(2, "launch profile "+id+" does not exist")
+		}
+		if len(config.Profiles) == 1 {
+			return fail(2, "launch profile "+id+" is the only profile and cannot be removed")
+		}
+		delete(config.Profiles, id)
+		if config.DefaultProfileID == id {
+			config.DefaultProfileID = config.ProfileIDs()[0]
+		}
+		return nil
+	})
+}
+
 func (m *Manager) updateLaunchConfig(update func(*launch.Config) error) (launch.Config, error) {
 	s, _, err := m.launchSession()
 	if err != nil {

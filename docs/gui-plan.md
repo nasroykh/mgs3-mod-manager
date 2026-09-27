@@ -1,6 +1,6 @@
 # Plan: a minimal window app for the manager (v0.4.0-alpha.2)
 
-Date: 2026-09-27. Status: steps 1 to 8 done, then the UI pass, quick launch and custom launch profiles (sections below), each reviewed and tested by the user on the real install on 2026-09-27; step 9 (release) next. Goal: players who never used a terminal can install, check, and remove the Delta controls kit with a few clicks, with every safety check the CLI has. Keep it simple and minimal; improve after tester feedback.
+Date: 2026-09-27. Status: done. Steps 1 to 9 plus the UI pass, quick launch and custom launch profiles (sections below), each reviewed and tested by the user on the real install; released as the prerelease v0.4.0-alpha.2 on 2026-09-27 ([record](releases/v0.4.0-alpha.2-validation.md)). Goal: players who never used a terminal can install, check, and remove the Delta controls kit with a few clicks, with every safety check the CLI has. Keep it simple and minimal; improve after tester feedback.
 
 ## Decisions (made with the user on 2026-09-27)
 

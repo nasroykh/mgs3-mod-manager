@@ -23,6 +23,8 @@ Inspected on 2026-09-19; launcher fingerprints were added and rechecked on 2026-
 | `launcher.exe` | 653824 | `2021.3.16.4200023` | `e061111cef605bdbf0ea7bc9cf686a1d29e317bf1da923e3c92c52f523479784` |
 | `launcher_Data/Managed/Assembly-CSharp.dll` | 459776 | `0.0.0.0` | `3f4de01b2de9e9efc31001c0ad376b294eaeec5dd092f7e681204e93684af945` |
 
+Since manager v0.4.0-alpha.1, `METAL GEAR SOLID3.exe` may also be the SteamStub-wrapped file of the same build: 12,948,040 bytes, SHA-256 `81596a6a670263da6ee59c959b65cbf833be985e64fa0332ad926271aa060bfe`, recorded on 2026-09-27. Its PE timestamp (`0x6980B92F`), section names and raw sizes match the supported executable; its entry point is in the SteamStub `.bind` section and its code is encrypted on disk. That a current Steam download has this exact file is UNVERIFIABLE here.
+
 The executable's metadata is not a Steam build identifier. The manager build is bound to all five fingerprints and the fixed directory. Each managed asset also has its own expected original hash.
 
 ## Reproduction commands

@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 param(
-    [Parameter(Mandatory = $true)][ValidatePattern('^v[0-9]+\.[0-9]+\.[0-9]+$')][string]$Version,
+    [Parameter(Mandatory = $true)][ValidatePattern('^v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|rc)\.[0-9]+)?$')][string]$Version,
     [Parameter(Mandatory = $true)][string]$UpstreamArchive,
     [Parameter(Mandatory = $true)][string]$LoaderArchive,
     [string]$OutputDirectory = ''

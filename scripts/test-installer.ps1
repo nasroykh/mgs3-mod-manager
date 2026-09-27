@@ -85,6 +85,19 @@ function Invoke-WebRequest([string]`$Uri,[string]`$OutFile) { Copy-Item -Literal
     $code = $LASTEXITCODE; $ErrorActionPreference = $saved
     if ($code -eq 0) { throw 'mismatched tag accepted' }
     Write-Output 'PASS: requested tag mismatch rejected'
+    $preZip = Join-Path $work 'mgs3mod_0.4.0-alpha.1_windows_amd64.zip'; Copy-Item $zip $preZip
+    $preSums = Join-Path $work 'pre-checksums.txt'; Set-Content $preSums "$hash  mgs3mod_0.4.0-alpha.1_windows_amd64.zip"
+    $preRun = $mock.Replace((Join-Path $work 'checksums.txt'), $preSums).Replace((Join-Path $work 'install'), (Join-Path $work 'pre-install')).Replace('0.1.0', '0.4.0-alpha.1')
+    $preScript = Join-Path $work 'prerelease.ps1'; Set-Content $preScript $preRun
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $preScript | Out-Null
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path (Join-Path $work 'pre-install\mgs3mod.exe'))) { throw 'prerelease tag install failed' }
+    Write-Output 'PASS: requested prerelease tag installed'
+    $badPreScript = Join-Path $work 'bad-prerelease.ps1'; Set-Content $badPreScript ($preRun.Replace('0.4.0-alpha.1', '0.4.0-nightly.1'))
+    $saved = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $badPreScript 2>&1 | Out-Null
+    $code = $LASTEXITCODE; $ErrorActionPreference = $saved
+    if ($code -eq 0) { throw 'unknown prerelease label accepted' }
+    Write-Output 'PASS: unknown prerelease label rejected'
     $failingSource = $source.Replace("function Set-UserPath([string]`$Value) { [Environment]::SetEnvironmentVariable('Path', `$Value, 'User') }", "function Set-UserPath([string]`$Value) { throw 'injected PATH failure' }")
     if ($failingSource -ceq $source) { throw 'Failure injection did not apply' }
     $failingInstaller = Join-Path $work 'failing-installer.ps1'; Set-Content $failingInstaller $failingSource

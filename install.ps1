@@ -13,7 +13,7 @@ function Fail([string]$Message) { throw "Installer: $Message" }
 
 function Get-Release([string]$RequestedVersion) {
     if ($RequestedVersion) {
-        if ($RequestedVersion -notmatch '^v\d+\.\d+\.\d+$') { Fail 'Version must look like v0.1.0.' }
+        if ($RequestedVersion -notmatch '^v\d+\.\d+\.\d+(-(alpha|beta|rc)\.\d+)?$') { Fail 'Version must look like v0.1.0 or v0.4.0-alpha.1.' }
         return Invoke-RestMethod -Uri ("https://api.github.com/repos/nasroykh/mgs3-mod-manager/releases/tags/{0}" -f $RequestedVersion) -Headers @{ 'User-Agent' = 'mgs3mod-installer' }
     }
     return Invoke-RestMethod -Uri 'https://api.github.com/repos/nasroykh/mgs3-mod-manager/releases/latest' -Headers @{ 'User-Agent' = 'mgs3mod-installer' }
@@ -91,7 +91,7 @@ try {
     New-Item -ItemType Directory -Path $downloadDir,$extractDir -Force | Out-Null
     $release = Get-Release $Version
     $releaseTag = [string]$release.tag_name
-    if ($releaseTag -notmatch '^v\d+\.\d+\.\d+$') { Fail 'Release tag must be a semantic version with v prefix.' }
+    if ($releaseTag -notmatch '^v\d+\.\d+\.\d+(-(alpha|beta|rc)\.\d+)?$') { Fail 'Release tag must be a semantic version with v prefix.' }
     if ($Version -and $releaseTag -cne $Version) { Fail 'Requested version does not match release tag.' }
     $AssetName = 'mgs3mod_{0}_windows_amd64.zip' -f $releaseTag.Substring(1)
     $zipAsset = Get-Asset $release $AssetName

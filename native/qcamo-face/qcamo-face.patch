@@ -1,0 +1,974 @@
+diff --git a/src/camo_swatch.cpp b/src/camo_swatch.cpp
+index 3349c5b..10781ad 100644
+--- a/src/camo_swatch.cpp
++++ b/src/camo_swatch.cpp
+@@ -65,7 +65,7 @@ constexpr std::array kFaceIcons = {
+     "0042367f", // woodland
+     "00e9362a", // black
+     "0092367d", // water
+-    "00113632", // mountain
++    "00113632", // desert
+     "006a366f", // splitter
+     "002d366f", // snow
+     "0080364d", // kabuki
+diff --git a/src/game_mgs3.h b/src/game_mgs3.h
+index bb0d81b..b0d0a0f 100644
+--- a/src/game_mgs3.h
++++ b/src/game_mgs3.h
+@@ -56,6 +56,11 @@ inline constexpr uint32_t kFaceAssetId = 0x0003A157;
+ inline constexpr uint8_t kTuxedoUniform = 16;
+ inline constexpr uint8_t kNoFacePaint = 0;
+ inline constexpr uint8_t kMaskFacePaint = 10;
++// Player status bitset (0x359020 tests bit n of the dwords here). The 0x1A0014
++// handler (0x36B7A6) shows the Mask node when the face byte is 10 or status 7
++// (first person) is set, and hides it otherwise.
++inline constexpr uint32_t kPlayerStatus = 0x1E16CF8;
++inline constexpr uint32_t kFirstPersonStatus = 7;
+ 
+ // Stats-block area code (bbtracker: 7-char stage string, s*/v* are gameplay).
+ inline constexpr uint32_t kAreaCode = 0x24;
+diff --git a/src/hud_font.cpp b/src/hud_font.cpp
+index bf984f3..6ebc002 100644
+--- a/src/hud_font.cpp
++++ b/src/hud_font.cpp
+@@ -5,6 +5,7 @@
+ #include <algorithm>
+ #include <array>
+ #include <cmath>
++#include <utility>
+ 
+ #include "common/log.h"
+ #include "ctxr.h"
+@@ -130,18 +131,23 @@ void hud_tile(ImDrawList* draw, ImVec2 position, float height, const char* label
+     hud_text(draw, {position.x + height * 0.5f, position.y}, height, kTileInk, label);
+ }
+ 
+-void hud_dpad(ImDrawList* draw, ImVec2 position, float height, ImU32 color)
++void hud_dpad(ImDrawList* draw, ImVec2 position, float height, ImU32 color, bool across)
+ {
+     float arm = height / 3.0f;
+     ImU32 idle = (color & 0x00FFFFFF) | 0x66000000;
+-    draw->AddRectFilled({position.x, position.y + arm},
+-                        {position.x + height, position.y + 2 * arm}, idle);
+-    draw->AddRectFilled({position.x + arm, position.y + arm},
+-                        {position.x + 2 * arm, position.y + 2 * arm}, idle);
+-    draw->AddRectFilled({position.x + arm, position.y},
+-                        {position.x + 2 * arm, position.y + arm}, color);
+-    draw->AddRectFilled({position.x + arm, position.y + 2 * arm},
+-                        {position.x + 2 * arm, position.y + height}, color);
++    // Drawn for up and down; across is the same cross mirrored on its diagonal.
++    auto rect = [&](float x0, float y0, float x1, float y1, ImU32 fill) {
++        if (across) {
++            std::swap(x0, y0);
++            std::swap(x1, y1);
++        }
++        draw->AddRectFilled({position.x + x0, position.y + y0},
++                            {position.x + x1, position.y + y1}, fill);
++    };
++    rect(0, arm, height, 2 * arm, idle);
++    rect(arm, arm, 2 * arm, 2 * arm, idle);
++    rect(arm, 0, 2 * arm, arm, color);
++    rect(arm, 2 * arm, 2 * arm, height, color);
+ }
+ 
+ void hud_text(ImDrawList* draw, ImVec2 position, float height, ImU32 color, const char* text)
+diff --git a/src/hud_font.h b/src/hud_font.h
+index 7f64e9a..946e911 100644
+--- a/src/hud_font.h
++++ b/src/hud_font.h
+@@ -11,10 +11,11 @@ namespace qcamo {
+ ID3D11ShaderResourceView* hud_cross_button(ID3D11Device* device);
+ 
+ // MGS3 ships no art for a shoulder-button prompt other than R1, and none at all
+-// for the D-pad, so these two are drawn in the style of that R1 tile.
++// for the D-pad, so these two are drawn in the style of that R1 tile. The D-pad
++// lights up and down, or left and right when `across` is set.
+ float hud_tile_width(const char* label, float height);
+ void hud_tile(ImDrawList* draw, ImVec2 position, float height, const char* label);
+-void hud_dpad(ImDrawList* draw, ImVec2 position, float height, ImU32 color);
++void hud_dpad(ImDrawList* draw, ImVec2 position, float height, ImU32 color, bool across = false);
+ 
+ // The game's own HUD typeface, read from its bitmap atlas. Text is drawn one
+ // glyph quad at a time; `height` is the cell height in pixels, which is what
+diff --git a/src/overlay.cpp b/src/overlay.cpp
+index bba5718..931d941 100644
+--- a/src/overlay.cpp
++++ b/src/overlay.cpp
+@@ -45,10 +45,13 @@ ImVec2 render_size;
+ uintptr_t base;
+ std::atomic_uintptr_t inventory;
+ QueueUniform queue_uniform;
+-// The face paint every row is offered with, fixed while the menu is open.
+-uint8_t paired_face;
+ bool ready;
+ bool open;
++// Opened by holding D-pad up, which is then still down and must not also
++// move the cursor.
++bool dpad_opened;
++// Showing face paints rather than uniforms. Kept from one opening to the next.
++bool face_list;
+ bool rows_dirty;
+ int selected;
+ 
+@@ -62,6 +65,8 @@ constexpr ImU32 kRowWorn = IM_COL32(10, 10, 7, 235);
+ constexpr ImU32 kRowText = IM_COL32(20, 20, 15, 255);
+ constexpr ImU32 kRowWornText = IM_COL32(103, 103, 82, 255);
+ constexpr ImU32 kHint = IM_COL32(110, 110, 94, 235);
++// Swatch tint for rows the equip refuses.
++constexpr ImU32 kDimmed = IM_COL32(255, 255, 255, 96);
+ 
+ constexpr std::array kUniformNames = {
+     "OLIVE DRAB", "TIGER STRIPE", "LEAF", "TREE BARK", "CHOCO CHIP",
+@@ -74,7 +79,7 @@ constexpr std::array kUniformNames = {
+ 
+ // Face paints, in the order the game's own camouflage records list them.
+ constexpr std::array kFaceNames = {
+-    "NO PAINT", "WOODLAND", "BLACK", "WATER", "MOUNTAIN", "SPLITTER", "SNOW",
++    "NO PAINT", "WOODLAND", "BLACK", "WATER", "DESERT", "SPLITTER", "SNOW",
+     "KABUKI", "ZOMBIE", "OYAMA", "MASK", "GREEN", "BROWN", "INFINITY",
+     "SOVIET UNION", "UK", "FRANCE", "GERMANY", "ITALY", "SPAIN", "SWEDEN",
+     "JAPAN", "USA",
+@@ -98,25 +103,80 @@ struct Pad {
+     bool shoulder; // L1
+     bool open_button; // triangle
+     bool equip; // cross
+-    bool up;
++    // D-pad up also holds the menu open, so it is kept apart from the sticks.
++    bool dpad_up;
++    bool stick_up;
+     bool down;
++    bool left;
++    bool right;
+ };
+ 
+-constexpr Pad xinput_pad(WORD buttons, SHORT stick_y)
++// A stick's latched menu direction. It engages when the stronger axis passes
++// the threshold at 1.5 times the other one and lets go only once that axis
++// falls below 60% of the threshold, so a stick resting near the threshold or
++// near a diagonal cannot step the cursor or switch list over and over.
++enum class Tilt : uint8_t { None, Up, Down, Left, Right };
++
++constexpr Tilt stick_tilt(Tilt held, float x, float y, float threshold)
++{
++    float release = threshold * 0.6f;
++    if ((held == Tilt::Up && y > release) || (held == Tilt::Down && y < -release) ||
++        (held == Tilt::Left && x < -release) || (held == Tilt::Right && x > release)) {
++        return held;
++    }
++    float across = x < 0 ? -x : x;
++    float along = y < 0 ? -y : y;
++    if (along > threshold && along >= 1.5f * across) return y > 0 ? Tilt::Up : Tilt::Down;
++    if (across > threshold && across >= 1.5f * along) return x > 0 ? Tilt::Right : Tilt::Left;
++    return Tilt::None;
++}
++
++static_assert(stick_tilt(Tilt::None, 0.1f, 0.6f, 0.5f) == Tilt::Up &&
++              stick_tilt(Tilt::None, 0.45f, 0.6f, 0.5f) == Tilt::None &&
++              stick_tilt(Tilt::None, 0.7f, 0.7f, 0.5f) == Tilt::None &&
++              stick_tilt(Tilt::None, 0.0f, 0.45f, 0.5f) == Tilt::None &&
++              stick_tilt(Tilt::Up, 0.0f, 0.35f, 0.5f) == Tilt::Up &&
++              stick_tilt(Tilt::Up, 0.0f, 0.25f, 0.5f) == Tilt::None &&
++              stick_tilt(Tilt::Up, -0.9f, 0.35f, 0.5f) == Tilt::Up &&
++              stick_tilt(Tilt::Up, -0.9f, 0.2f, 0.5f) == Tilt::Left &&
++              stick_tilt(Tilt::None, 0.8f, -0.2f, 0.5f) == Tilt::Right &&
++              stick_tilt(Tilt::None, 0, -20000, 16384) == Tilt::Down &&
++              stick_tilt(Tilt::Down, 0, -10000, 16384) == Tilt::Down &&
++              stick_tilt(Tilt::Down, 0, -9000, 16384) == Tilt::None);
++
++// Either stick moves the cursor or switches list: the right one is there
++// because the left thumb is on the D-pad while D-pad up holds the menu.
++constexpr void add_stick(Pad& pad, Tilt& held, float x, float y, float threshold)
++{
++    held = stick_tilt(held, x, y, threshold);
++    pad.stick_up = pad.stick_up || held == Tilt::Up;
++    pad.down = pad.down || held == Tilt::Down;
++    pad.left = pad.left || held == Tilt::Left;
++    pad.right = pad.right || held == Tilt::Right;
++}
++
++constexpr Pad xinput_pad(WORD buttons)
+ {
+     return {
+         (buttons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0,
+         (buttons & XINPUT_GAMEPAD_Y) != 0,
+         (buttons & XINPUT_GAMEPAD_A) != 0,
+-        (buttons & XINPUT_GAMEPAD_DPAD_UP) != 0 || stick_y > 16384,
+-        (buttons & XINPUT_GAMEPAD_DPAD_DOWN) != 0 || stick_y < -16384,
++        (buttons & XINPUT_GAMEPAD_DPAD_UP) != 0,
++        false,
++        (buttons & XINPUT_GAMEPAD_DPAD_DOWN) != 0,
++        (buttons & XINPUT_GAMEPAD_DPAD_LEFT) != 0,
++        (buttons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0,
+     };
+ }
+ 
+-static_assert(xinput_pad(XINPUT_GAMEPAD_LEFT_SHOULDER | XINPUT_GAMEPAD_Y, 0).shoulder &&
+-              xinput_pad(XINPUT_GAMEPAD_LEFT_SHOULDER | XINPUT_GAMEPAD_Y, 0).open_button &&
+-              xinput_pad(XINPUT_GAMEPAD_A | XINPUT_GAMEPAD_DPAD_DOWN, 0).equip &&
+-              xinput_pad(0, 20000).up && xinput_pad(0, -20000).down);
++static_assert(xinput_pad(XINPUT_GAMEPAD_LEFT_SHOULDER | XINPUT_GAMEPAD_Y).shoulder &&
++              xinput_pad(XINPUT_GAMEPAD_LEFT_SHOULDER | XINPUT_GAMEPAD_Y).open_button &&
++              xinput_pad(XINPUT_GAMEPAD_A | XINPUT_GAMEPAD_DPAD_DOWN).equip &&
++              xinput_pad(XINPUT_GAMEPAD_A | XINPUT_GAMEPAD_DPAD_DOWN).down &&
++              xinput_pad(XINPUT_GAMEPAD_DPAD_UP).dpad_up &&
++              !xinput_pad(XINPUT_GAMEPAD_DPAD_UP).stick_up &&
++              xinput_pad(XINPUT_GAMEPAD_DPAD_LEFT).left &&
++              xinput_pad(XINPUT_GAMEPAD_DPAD_RIGHT).right);
+ 
+ // Flat wrappers preserve Steam's structures: digital data is two packed bytes;
+ // analog data is mode, x, y, active with padding to 16 bytes.
+@@ -136,8 +196,8 @@ struct SteamPad {
+     DigitalDataFn data;
+     AnalogDataFn analog_data;
+     uint64_t controller;
+-    uint64_t triangle, cross, shoulder, up, down;
+-    uint64_t move;
++    uint64_t triangle, cross, shoulder, up, down, left, right;
++    uint64_t move, look;
+ };
+ 
+ SteamPad steam_pad;
+@@ -164,6 +224,8 @@ bool open_pad()
+         GetProcAddress(steam, "SteamAPI_ISteamInput_GetAnalogActionData"));
+     auto analog_handle = reinterpret_cast<uint64_t (*)(void*, const char*)>(
+         GetProcAddress(steam, "SteamAPI_ISteamInput_GetAnalogActionHandle"));
++    auto digital_handle = reinterpret_cast<uint64_t (*)(void*, const char*)>(
++        GetProcAddress(steam, "SteamAPI_ISteamInput_GetDigitalActionHandle"));
+     steam_pad.self = accessor ? accessor() : nullptr;
+     if (!steam_pad.self || !connected || !name_of || !steam_pad.data) return false;
+ 
+@@ -177,10 +239,17 @@ bool open_pad()
+     const struct {
+         const char* name;
+         uint64_t* target;
++        // The executable's own name for the action, looked up by name when the
++        // walk misses the display name.
++        const char* action;
+     } wanted[] = {
+-        {"L1 Button", &steam_pad.shoulder}, {"Y Button", &steam_pad.triangle},
+-        {"A Button", &steam_pad.cross},     {"Arrow Up", &steam_pad.up},
+-        {"Arrow Down", &steam_pad.down},
++        {"L1 Button", &steam_pad.shoulder, nullptr},
++        {"Y Button", &steam_pad.triangle, nullptr},
++        {"A Button", &steam_pad.cross, nullptr},
++        {"Arrow Up", &steam_pad.up, "ingame_cmn_move_up"},
++        {"Arrow Down", &steam_pad.down, "ingame_cmn_move_down"},
++        {"Arrow Left", &steam_pad.left, "ingame_cmn_move_left"},
++        {"Arrow Right", &steam_pad.right, "ingame_cmn_move_right"},
+     };
+     for (uint64_t action = 1; action <= 64; ++action) {
+         const char* name = name_of(steam_pad.self, action);
+@@ -189,32 +258,50 @@ bool open_pad()
+             if (std::strcmp(name, entry.name) == 0) *entry.target = action;
+         }
+     }
++    // The executable names two stick actions, "ingame_stick_move" and the
++    // camera's "ingame_stick_cam_dir".
+     if (analog_handle && steam_pad.analog_data) {
+         steam_pad.move = analog_handle(steam_pad.self, "ingame_stick_move");
++        steam_pad.look = analog_handle(steam_pad.self, "ingame_stick_cam_dir");
+     }
+     if (!steam_pad.shoulder || !steam_pad.triangle || !steam_pad.cross) {
+         LOG_WARN("steam input actions not found");
+         return false;
+     }
+     steam_pad.controller = controller;
+-    LOG_INFO("pad ready through steam input; left stick handle %llu",
+-             static_cast<unsigned long long>(steam_pad.move));
++    LOG_INFO("pad ready through steam input; left stick handle %llu, right stick handle %llu",
++             static_cast<unsigned long long>(steam_pad.move),
++             static_cast<unsigned long long>(steam_pad.look));
++    if (!steam_pad.look) LOG_INFO("steam input right stick not found; XInput only");
++    // The arrows are optional: the sticks still select and switch lists
++    // without them. Only the D-pad up hold has no stand-in. The executable
++    // names the D-pad actions ingame_cmn_move_* in its NHTCommonSet, so those
++    // names stand in when Steam reports no display name.
++    for (const auto& entry : wanted) {
++        if (!entry.action) continue;
++        const char* source = "display name";
++        if (!*entry.target && digital_handle) {
++            *entry.target = digital_handle(steam_pad.self, entry.action);
++            source = entry.action;
++        }
++        if (*entry.target) {
++            LOG_INFO("steam input %s: handle %llu by %s", entry.name,
++                     static_cast<unsigned long long>(*entry.target), source);
++        } else {
++            LOG_INFO("steam input %s not found", entry.name);
++        }
++    }
+     return true;
+ }
+ 
+ constexpr float kStickThreshold = 0.5f;
+-
+-constexpr int stick_step(float y, bool active)
+-{
+-    return !active ? 0 : y > kStickThreshold ? -1 : y < -kStickThreshold ? 1 : 0;
+-}
+-
+-static_assert(stick_step(0.6f, true) == -1 && stick_step(-0.6f, true) == 1 &&
+-              stick_step(0.4f, true) == 0 && stick_step(1.0f, false) == 0);
++constexpr float kXInputStickThreshold = 16384;
+ 
+ Pad read_pad()
+ {
+     Pad pad{};
++    static Tilt steam_tilt[2];
++    static Tilt xinput_tilt[XUSER_MAX_COUNT][2];
+     if (open_pad()) {
+         // The low byte is the pressed state; the high byte says whether the action
+         // is in the action set the game currently has active.
+@@ -225,13 +312,19 @@ Pad read_pad()
+         pad.shoulder = down(steam_pad.shoulder);
+         pad.open_button = down(steam_pad.triangle);
+         pad.equip = down(steam_pad.cross);
+-        int stick = 0;
+-        if (steam_pad.move && steam_pad.analog_data) {
+-            auto data = steam_pad.analog_data(steam_pad.self, steam_pad.controller, steam_pad.move);
+-            stick = stick_step(data.y, data.active);
++        pad.dpad_up = down(steam_pad.up);
++        pad.down = down(steam_pad.down);
++        pad.left = down(steam_pad.left);
++        pad.right = down(steam_pad.right);
++        uint64_t sticks[] = {steam_pad.move, steam_pad.look};
++        for (int i = 0; i < 2; ++i) {
++            AnalogData data{};
++            if (sticks[i] && steam_pad.analog_data) {
++                data = steam_pad.analog_data(steam_pad.self, steam_pad.controller, sticks[i]);
++            }
++            add_stick(pad, steam_tilt[i], data.active ? data.x : 0, data.active ? data.y : 0,
++                      kStickThreshold);
+         }
+-        pad.up = down(steam_pad.up) || stick < 0;
+-        pad.down = down(steam_pad.down) || stick > 0;
+     }
+ 
+     // Steam hides XInput devices while managing them. Polling both paths lets
+@@ -245,13 +338,24 @@ Pad read_pad()
+     }();
+     for (DWORD slot = 0; get_state && slot < XUSER_MAX_COUNT; ++slot) {
+         XINPUT_STATE state{};
+-        if (get_state(slot, &state) != ERROR_SUCCESS) continue;
+-        Pad native = xinput_pad(state.Gamepad.wButtons, state.Gamepad.sThumbLY);
++        Tilt* tilt = xinput_tilt[slot];
++        if (get_state(slot, &state) != ERROR_SUCCESS) {
++            tilt[0] = tilt[1] = Tilt::None;
++            continue;
++        }
++        Pad native = xinput_pad(state.Gamepad.wButtons);
++        add_stick(native, tilt[0], state.Gamepad.sThumbLX, state.Gamepad.sThumbLY,
++                  kXInputStickThreshold);
++        add_stick(native, tilt[1], state.Gamepad.sThumbRX, state.Gamepad.sThumbRY,
++                  kXInputStickThreshold);
+         pad.shoulder |= native.shoulder;
+         pad.open_button |= native.open_button;
+         pad.equip |= native.equip;
+-        pad.up |= native.up;
++        pad.dpad_up |= native.dpad_up;
++        pad.stick_up |= native.stick_up;
+         pad.down |= native.down;
++        pad.left |= native.left;
++        pad.right |= native.right;
+         static bool logged;
+         if (!logged) {
+             logged = true;
+@@ -348,45 +452,72 @@ void refresh_owned_items()
+     }
+ }
+ 
+-// Face paint scores independently of the uniform. Tuxedo is the sole native
+-// exception because it disables face paint.
+-uint8_t best_face(int slot)
++uint8_t equipped_uniform()
+ {
+-    uint8_t best = 0;
+-    int best_value = face_value(base, slot, 0);
+-    for (uint8_t face : owned_face_cache) {
+-        int value = face_value(base, slot, face);
+-        if (value > best_value) {
+-            best_value = value;
+-            best = face;
+-        }
+-    }
+-    return best;
++    auto stats = mem::read<uintptr_t>(base + mgs3::kStatsSlot);
++    return stats ? mem::read<uint8_t>(stats + mgs3::kEquippedUniform) : 0;
+ }
+ 
++uint8_t equipped_face()
++{
++    auto stats = mem::read<uintptr_t>(base + mgs3::kStatsSlot);
++    return stats ? mem::read<uint8_t>(stats + mgs3::kEquippedFace) : 0;
++}
++
++// Tuxedo is the sole native exception to face paint because it disables it.
+ constexpr bool forces_no_face(uint8_t uniform_id)
+ {
+     return uniform_id == mgs3::kTuxedoUniform;
+ }
+ 
++// A uniform keeps the face paint Snake has on; the face paint list is where
++// that changes.
+ uint8_t face_for_uniform(uint8_t uniform_id)
+ {
+-    return forces_no_face(uniform_id) ? mgs3::kNoFacePaint : paired_face;
++    uint8_t face = equipped_face();
++    return forces_no_face(uniform_id) || face >= kFaceNames.size() ? mgs3::kNoFacePaint : face;
+ }
+ 
+ static_assert(forces_no_face(mgs3::kTuxedoUniform) && !forces_no_face(0));
+ 
+-// The rows the menu shows, best camouflage first. Rebuilt once when the menu
+-// opens and then frozen, so closed gameplay does no ranking work and the row
+-// under the cursor cannot move as Snake's footing changes.
+-const std::vector<uint8_t>& menu_uniforms()
++// A change made here while Mask is worn crashed the game at RVA 0xC8187, in an
++// actor update after the face load and before the final 0x1A0014 that sets the
++// Mask node from the face byte. change_camo now sends an extra 0x1A0014 right
++// after 0x1A000F, so the node is hidden before the face load. That refresh
++// keeps the node shown in first person (status 7), so with Mask on every equip
++// is refused there; Tuxedo stays refused too (untried). Putting Mask on is fine.
++constexpr bool mask_worn(uint8_t face)
++{
++    return face == mgs3::kMaskFacePaint;
++}
++
++bool first_person()
++{
++    auto bits = mem::read<uint32_t>(base + mgs3::kPlayerStatus +
++                                    (mgs3::kFirstPersonStatus >> 5) * 4);
++    return (bits >> (mgs3::kFirstPersonStatus & 31)) & 1;
++}
++
++bool mask_blocked()
++{
++    return mask_worn(equipped_face()) && first_person();
++}
++
++constexpr const char* kMaskRefusal = "leave first person to take the Mask off";
++constexpr const char* kMaskTuxedoRefusal = "take the Mask off before the Tuxedo";
++
++// The rows the menu shows, best camouflage first: uniforms with the face paint
++// each keeps, or face paints alone. Rebuilt when the menu opens or changes list
++// and then frozen, so closed gameplay does no ranking work and the row under
++// the cursor cannot move as Snake's footing changes.
++const std::vector<uint8_t>& menu_rows()
+ {
+     static std::vector<uint8_t> rows;
++    static std::vector<uint8_t> faces;
+     if (rows_dirty) {
+         refresh_owned_items();
+         int slot = camo_slot(base);
+         rows = owned_uniform_cache;
+-        paired_face = best_face(slot);
+         std::array<int, kUniformNames.size()> scores{};
+         for (uint8_t uniform_id : rows) {
+             scores[uniform_id] = camo_value(base, slot, uniform_id) +
+@@ -395,55 +526,69 @@ const std::vector<uint8_t>& menu_uniforms()
+         std::stable_sort(rows.begin(), rows.end(), [&scores](uint8_t a, uint8_t b) {
+             return scores[a] > scores[b];
+         });
++        faces = owned_face_cache;
++        std::array<int, kFaceNames.size()> face_scores{};
++        for (uint8_t face : faces) {
++            face_scores[face] = face_value(base, slot, face);
++        }
++        std::stable_sort(faces.begin(), faces.end(), [&face_scores](uint8_t a, uint8_t b) {
++            return face_scores[a] > face_scores[b];
++        });
+         rows_dirty = false;
+     }
+-    return rows;
+-}
+-
+-uint8_t equipped_uniform()
+-{
+-    auto stats = mem::read<uintptr_t>(base + mgs3::kStatsSlot);
+-    return stats ? mem::read<uint8_t>(stats + mgs3::kEquippedUniform) : 0;
+-}
+-
+-uint8_t equipped_face()
+-{
+-    auto stats = mem::read<uintptr_t>(base + mgs3::kStatsSlot);
+-    return stats ? mem::read<uint8_t>(stats + mgs3::kEquippedFace) : 0;
++    return face_list ? faces : rows;
+ }
+ 
+ // G stands in for holding L1 on a pad. Every other key near the movement hand
+ // is taken: both keyboard layouts use E, N, O and Space, layout A adds F, H, M
+ // and U, layout B adds C, Q, R and V. Enter stands in for cross, which is what
+-// the game's own keyboard prompts show for it. W/S join the arrow keys for the
+-// D-pad; they collide with movement until the menu freezes the game, but they
+-// are the natural reach for a hand already on the movement keys.
++// the game's own keyboard prompts show for it. W/S and A/D join the arrow keys
++// for the D-pad; they collide with movement until the menu freezes the game,
++// but they are the natural reach for a hand already on the movement keys.
+ constexpr int kHoldKey = 'G';
+ 
++// Keys the open menu reads as fresh presses. Their held state is taken when it
++// opens, so one already down then (a movement key, mostly) acts only once it
++// is pressed again, as the pad's buttons do.
++constexpr int kMenuKeys[] = {VK_UP, 'W', VK_DOWN, 'S', VK_LEFT, 'A', VK_RIGHT, 'D', VK_RETURN};
++
+ void poll_menu()
+ {
+     Pad pad = read_pad();
+     static Pad previous;
+     auto fresh = [&](bool Pad::*button) { return pad.*button && !(previous.*button); };
+-    bool pad_up = fresh(&Pad::up);
++    bool pad_dpad_up = fresh(&Pad::dpad_up);
++    bool pad_stick_up = fresh(&Pad::stick_up);
+     bool pad_down = fresh(&Pad::down);
++    bool pad_left = fresh(&Pad::left);
++    bool pad_right = fresh(&Pad::right);
+     bool pad_equip = fresh(&Pad::equip);
+     previous = pad;
+ 
+     // Triangle plus L1 opens the menu and L1 alone keeps it up, because on a
+-    // pad every button is already spoken for. G is the keyboard stand-in.
+-    // Both are read as levels rather than edges so the chord opens whichever
++    // pad every button is already spoken for. G is the keyboard stand-in, and
++    // holding D-pad up is a one-button pad hold like it. L1 is held in play
++    // for other things, so it alone does not keep a D-pad up menu open; the
++    // chord pressed in one hands it over to L1.
++    // All are read as levels rather than edges so the chord opens whichever
+     // way round it is pressed.
+     bool keyboard = (GetAsyncKeyState(kHoldKey) & 0x8000) != 0;
+-    bool held = keyboard || (pad.shoulder && (open || pad.open_button));
++    if (open && pad.shoulder && pad.open_button) dpad_opened = false;
++    bool chord = pad.shoulder && ((open && !dpad_opened) || pad.open_button);
++    bool held = keyboard || chord || pad.dpad_up;
+     bool requested = held;
++    // What holds the menu up, so the close can name the input let go.
++    const char* holder = keyboard ? "keyboard" : chord ? "pad chord" : "D-pad up";
++    static const char* last_holder = "pad chord";
+     // Gating: the menu only exists during gameplay. While open, our own wheel
+-    // pause bit is tolerated; on the opening edge the game must be fully
+-    // unpaused so we never stack onto a game wheel or another pauser.
++    // pause bit is tolerated, but only while it is ours: a live menu leaves the
++    // game running, so a game wheel opening under it must close it. On the
++    // opening edge the game must be fully unpaused so we never stack onto a
++    // game wheel or another pauser.
+     // Blocked holds log once per hold so title-screen idling stays quiet.
+     static bool logged_block;
+     if (open) {
+-        if (GateBlock block = gate_state(base, true); block != GateBlock::None) {
++        if (GateBlock block = gate_state(base, wheel_ours.load()); block != GateBlock::None) {
+             open = false;
+             held = false;
+             menu_open = false;
+@@ -465,47 +610,99 @@ void poll_menu()
+     }
+     if (held != open) {
+         open = held;
++        if (open) {
++            dpad_opened = !keyboard && !chord;
++            menu_live = dpad_opened;
++        }
+         menu_open = open;
+-        LOG_INFO("menu %s by %s", open ? "opened" : "closed", keyboard ? "keyboard" : "pad");
++        LOG_INFO("menu %s by %s", open ? "opened" : "closed", open ? holder : last_holder);
++        if (open && menu_live) LOG_INFO("menu live (no pause)");
+         pending_sound = open ? mgs3::kSoundOpen : mgs3::kSoundCancel;
+         // Rows are sorted best camouflage first, so opening on row 0 puts the
+         // cursor on the best swap available rather than on what Snake has on.
++        // The opening frame does nothing else, so whatever pressed it open
++        // cannot also move the cursor.
+         if (open) {
+             selected = 0;
+             rows_dirty = true;
++            for (int key : kMenuKeys) pressed(key);
++            last_holder = holder;
++            return;
+         }
+     }
+     if (!open) return;
+-    const auto& uniforms = menu_uniforms();
+-    if (uniforms.empty()) return;
+-    int count = static_cast<int>(uniforms.size());
++    last_holder = holder;
++    // L1+Y hands a D-pad up menu over to L1, which pauses as upstream.
++    menu_live = dpad_opened;
++    // Two lists, so either way across switches to the other one.
++    bool left = pressed_any(VK_LEFT, 'A');
++    bool right = pressed_any(VK_RIGHT, 'D');
++    if (left || right || pad_left || pad_right) {
++        face_list = !face_list;
++        selected = 0;
++        rows_dirty = true;
++        pending_sound = mgs3::kSoundCursor;
++        LOG_INFO("menu switched to %s", face_list ? "face paint" : "camouflage");
++    }
++    const auto& rows = menu_rows();
++    if (rows.empty()) return;
++    int count = static_cast<int>(rows.size());
+     bool up = pressed_any(VK_UP, 'W');
+     bool down = pressed_any(VK_DOWN, 'S');
++    // D-pad up that opened the menu is holding it open, so the sticks and
++    // D-pad down select until something else opens it.
++    bool pad_up = pad_stick_up || (pad_dpad_up && !dpad_opened);
+     if (up || pad_up) {
+         selected = wrapped(selected, count, -1);
+         pending_sound = mgs3::kSoundCursor;
+-        LOG_INFO("menu selected uniform %u", uniforms[selected]);
++        LOG_INFO("menu selected %s %u", face_list ? "face" : "uniform", rows[selected]);
+     }
+     if (down || pad_down) {
+         selected = wrapped(selected, count, 1);
+         pending_sound = mgs3::kSoundCursor;
+-        LOG_INFO("menu selected uniform %u", uniforms[selected]);
++        LOG_INFO("menu selected %s %u", face_list ? "face" : "uniform", rows[selected]);
+     }
+     // Equipping leaves the menu up; releasing the hold is what closes it. The
+     // cue only goes out if the change was accepted, so a refused equip stays
+     // silent rather than lying about it.
+     if (pressed(VK_RETURN) || pad_equip) {
+-        // Equipping what Snake already wears is refused here rather than in
+-        // change_camo, so it never takes the change gate and answers with the
+-        // game's refusal sound instead of a confirmation.
+-        uint8_t face = face_for_uniform(uniforms[selected]);
+-        bool worn = uniforms[selected] == equipped_uniform() && face == equipped_face();
+-        bool accepted = !worn && queue_uniform(uniforms[selected], face);
++        bool accepted;
++        if (face_list) {
++            // Face paint alone: with the uniform unchanged, change_camo takes
++            // its face-only path. Tuxedo takes no face paint at all.
++            uint8_t face = rows[selected];
++            uint8_t uniform = equipped_uniform();
++            const char* refusal = face == equipped_face()   ? "already worn"
++                                  : forces_no_face(uniform) ? "uniform takes no face paint"
++                                  : mask_blocked()          ? kMaskRefusal
++                                                            : nullptr;
++            accepted = !refusal && queue_uniform(uniform, face);
++            if (accepted) {
++                LOG_INFO("face %u %s equip accepted", face, kFaceNames[face]);
++            } else {
++                LOG_INFO("face %u %s equip refused: %s", face, kFaceNames[face],
++                         refusal ? refusal : "change not queued");
++            }
++        } else {
++            // Equipping what Snake already wears is refused here rather than in
++            // change_camo, so it never takes the change gate and answers with the
++            // game's refusal sound instead of a confirmation.
++            uint8_t face = face_for_uniform(rows[selected]);
++            bool worn = rows[selected] == equipped_uniform() && face == equipped_face();
++            const char* mask = worn || !mask_worn(equipped_face()) ? nullptr
++                               : forces_no_face(rows[selected])  ? kMaskTuxedoRefusal
++                               : first_person()                  ? kMaskRefusal
++                                                                 : nullptr;
++            accepted = !worn && !mask && queue_uniform(rows[selected], face);
++            if (mask) {
++                LOG_INFO("uniform %u equip refused: %s", rows[selected], mask);
++            }
++        }
+         pending_sound = accepted ? mgs3::kSoundDecide : mgs3::kSoundDenied;
+     }
+ }
+ 
+-void draw_menu(const std::vector<uint8_t>& uniforms)
++void draw_menu(const std::vector<uint8_t>& rows)
+ {
+     if (!open) return;
+     const ImGuiIO& io = ImGui::GetIO();
+@@ -531,7 +728,7 @@ void draw_menu(const std::vector<uint8_t>& uniforms)
+     float hint_height = font_height;
+     float row_height = 34 * scale;
+     float width = 560 * scale;
+-    int count = static_cast<int>(uniforms.size());
++    int count = static_cast<int>(rows.size());
+     int visible = std::min(count, 8);
+     float height = 4 * pad + header_height + visible * row_height + hint_height;
+     float x = io.DisplaySize.x - width - 46 * scale;
+@@ -541,60 +738,93 @@ void draw_menu(const std::vector<uint8_t>& uniforms)
+ 
+     draw->AddRectFilled({x, y}, {x + width, y + height}, kPanel);
+     draw->AddRect({x, y}, {x + width, y + height}, kFrame, 0.0f, 0, 2 * scale);
+-    text({inner, y + pad}, header_height, kHeaderText, "CAMOUFLAGE");
++    // Both lists are named in the header; the one showing is lit and
++    // underlined.
++    float tab = inner;
++    for (bool faces : {false, true}) {
++        const char* name = faces ? "FACE PAINT" : "CAMOUFLAGE";
++        float tab_width = text_width(name, header_height);
++        bool shown = faces == face_list;
++        text({tab, y + pad}, header_height, shown ? kHeaderText : kHint, name);
++        if (shown) {
++            draw->AddRectFilled({tab, y + pad + header_height},
++                                {tab + tab_width, y + pad + header_height + 2 * scale},
++                                kHeaderText);
++        }
++        tab += tab_width + 24 * scale;
++    }
+ 
+     float top = y + 2 * pad + header_height;
+     int first = std::clamp(selected - 3, 0, count - visible);
+     uint8_t equipped = equipped_uniform();
+     uint8_t equipped_face_id = equipped_face();
+     int slot = camo_slot(base);
++    // Rows the equip refuses are dimmed and show no gain: face paints over
++    // Tuxedo, with Mask on the Tuxedo, and in first person with Mask on every
++    // row but the worn ones.
++    bool no_face = face_list && forces_no_face(equipped);
++    bool mask = mask_worn(equipped_face_id);
++    bool mask_all = mask && first_person();
+     for (int row = 0; row < visible; ++row) {
+         int index = first + row;
+-        uint8_t id = uniforms[index];
+-        uint8_t face = face_for_uniform(id);
++        uint8_t id = rows[index];
++        // A face paint row is the set Snake would wear with his uniform as it
++        // is, so both kinds of row compare against what he has on the same way.
++        uint8_t uniform_id = face_list ? equipped : id;
++        uint8_t face = face_list ? id : face_for_uniform(id);
+         bool active = index == selected;
+         // The HUD inverts the row Snake is wearing: olive on black rather than
+         // black on olive, dim normally and bright under the cursor.
+-        bool worn = id == equipped && face == equipped_face_id;
++        bool worn = uniform_id == equipped && face == equipped_face_id;
++        bool refused = !worn && (no_face || mask_all ||
++                                 (mask && !face_list && forces_no_face(id)));
+         ImU32 worn_ink = active ? kRowSelected : kRowWornText;
+         ImVec2 row_min{inner, top + row * row_height};
+         ImVec2 row_max{inner + inner_width, row_min.y + row_height - 3 * scale};
+         draw->AddRectFilled(row_min, row_max,
+                             worn ? kRowWorn : active ? kRowSelected : kRow);
+         if (worn) draw->AddRect(row_min, row_max, worn_ink, 0.0f, 0, scale);
+-        // A row is a set, so it carries both swatches: the uniform first, then
+-        // the face paint, in the order they read in the label beside them.
++        // A uniform row is a set, so it carries both swatches: the uniform
++        // first, then the face paint, in the order they read in the label
++        // beside them. A face paint row carries the face paint alone.
+         float patch_height = row_max.y - row_min.y - 8 * scale;
+         float patch_width = patch_height * kSwatchAspect;
+         ImVec2 patch_min{row_min.x + 5 * scale, row_min.y + 4 * scale};
+         ImVec2 patch_max{patch_min.x + patch_width, patch_min.y + patch_height};
+-        if (auto* texture = camo_swatch(device, id)) {
+-            draw->AddImage(reinterpret_cast<ImTextureID>(texture), patch_min, patch_max);
+-        } else {
+-            draw->AddRectFilled(patch_min, patch_max,
+-                                IM_COL32(70 + (id * 37) % 100, 66 + (id * 19) % 85,
+-                                         42 + (id * 29) % 70, 255));
++        if (!face_list) {
++            if (auto* texture = camo_swatch(device, id)) {
++                draw->AddImage(reinterpret_cast<ImTextureID>(texture), patch_min, patch_max,
++                               {0, 0}, {1, 1}, refused ? kDimmed : IM_COL32_WHITE);
++            } else {
++                draw->AddRectFilled(patch_min, patch_max,
++                                    IM_COL32(70 + (id * 37) % 100, 66 + (id * 19) % 85,
++                                             42 + (id * 29) % 70, 255));
++            }
++            patch_min.x = patch_max.x + 4 * scale;
++            patch_max.x = patch_min.x + patch_width;
+         }
+-        patch_min.x = patch_max.x + 4 * scale;
+-        patch_max.x = patch_min.x + patch_width;
+         if (auto* texture = face_swatch(device, face)) {
+-            draw->AddImage(reinterpret_cast<ImTextureID>(texture), patch_min, patch_max);
++            draw->AddImage(reinterpret_cast<ImTextureID>(texture), patch_min, patch_max, {0, 0},
++                           {1, 1}, refused ? kDimmed : IM_COL32_WHITE);
+         } else {
+             draw->AddRect(patch_min, patch_max, kHint, 0.0f, 0, scale);
+         }
+         float label_height = font_height;
+         float label_y = row_min.y + (row_max.y - row_min.y - label_height) * 0.5f;
+-        ImU32 ink = worn ? worn_ink : kRowText;
+-        // A row is a whole set: this uniform worn with the face paint that
+-        // scores best here, since face paint scores the same whatever the
+-        // uniform.
++        ImU32 ink = worn ? worn_ink : refused ? kHint : kRowText;
++        // A uniform row is a whole set: this uniform worn with the face paint
++        // it keeps.
++        const char* name = kFaceNames[face];
+         char pair[64];
+-        std::snprintf(pair, sizeof(pair), "%s / %s", kUniformNames[id], kFaceNames[face]);
+-        text({patch_max.x + 10 * scale, label_y}, label_height, ink, pair);
+-        if (slot < 0) continue;
++        if (!face_list) {
++            std::snprintf(pair, sizeof(pair), "%s / %s", kUniformNames[id], kFaceNames[face]);
++            name = pair;
++        }
++        text({patch_max.x + 10 * scale, label_y}, label_height, ink, name);
++        if (slot < 0 || refused) continue;
+         // What swapping to the set would gain or lose. The absolute percentage
+         // is already on the HUD, so only the difference is worth the row.
+-        int delta = camo_value(base, slot, id) + face_value(base, slot, face) -
++        int delta = camo_value(base, slot, uniform_id) + face_value(base, slot, face) -
+                     camo_value(base, slot, equipped) - face_value(base, slot, equipped_face_id);
+         if (delta == 0) continue;
+         char change[8];
+@@ -604,7 +834,8 @@ void draw_menu(const std::vector<uint8_t>& uniforms)
+     }
+     float hint_y = top + visible * row_height + pad;
+     if (!hud) {
+-        text({inner, hint_y}, hint_height, kHint, "W/S SELECT   ENTER EQUIP   G HOLD");
++        // Short enough for the panel at its smallest scale.
++        text({inner, hint_y}, hint_height, kHint, "W/S  A/D LIST  ENTER EQUIP  G HOLD");
+         return;
+     }
+     float cursor = inner;
+@@ -615,6 +846,9 @@ void draw_menu(const std::vector<uint8_t>& uniforms)
+     hud_dpad(draw, {cursor, hint_y}, hint_height, kHint);
+     cursor += hint_height + 4 * scale;
+     label("SELECT");
++    hud_dpad(draw, {cursor, hint_y}, hint_height, kHint, true);
++    cursor += hint_height + 4 * scale;
++    label("LIST");
+     if (auto* icon = hud_cross_button(device)) {
+         // The button art carries its own padding, so it reads right a little
+         // larger than the cap height beside it.
+@@ -684,7 +918,7 @@ HRESULT STDMETHODCALLTYPE present_hook(IDXGISwapChain* swap_chain, UINT interval
+     }
+     poll_menu();
+     if (!open) return original_present(swap_chain, interval, flags);
+-    const auto& uniforms = menu_uniforms();
++    const auto& rows = menu_rows();
+     ImGui_ImplDX11_NewFrame();
+     ImGui_ImplWin32_NewFrame();
+     // Win32 reports window size, which differs from swap-chain size under
+@@ -692,7 +926,7 @@ HRESULT STDMETHODCALLTYPE present_hook(IDXGISwapChain* swap_chain, UINT interval
+     // anchoring survives any output/internal-resolution combination.
+     ImGui::GetIO().DisplaySize = render_size;
+     ImGui::NewFrame();
+-    draw_menu(uniforms);
++    draw_menu(rows);
+     ImGui::Render();
+     context->OMSetRenderTargets(1, &render_target, nullptr);
+     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+@@ -764,6 +998,8 @@ bool install_hooks()
+ } // namespace
+ 
+ std::atomic_bool menu_open;
++std::atomic_bool menu_live;
++std::atomic_bool wheel_ours;
+ std::atomic_int pending_sound;
+ 
+ void refresh_inventory()
+diff --git a/src/overlay.h b/src/overlay.h
+index 3c15884..203980e 100644
+--- a/src/overlay.h
++++ b/src/overlay.h
+@@ -7,14 +7,20 @@ namespace qcamo {
+ 
+ // Render-thread menu state, consumed by the pause state machine.
+ extern std::atomic_bool menu_open;
++// The open menu leaves the game running (opened by holding D-pad up): the
++// wheel pause is then taken only while a change is in flight.
++extern std::atomic_bool menu_live;
++// The wheel pause bit is ours. Set before the bit and cleared after it, so the
++// menu's gate never mistakes our bit for a game wheel.
++extern std::atomic_bool wheel_ours;
+ 
+ // UI sound cue the menu wants played, set on the render thread and drained by
+ // the gameplay thread, which is the only one that may call into the game. One
+ // slot is enough: a frame never owes more than one menu sound.
+ extern std::atomic_int pending_sound;
+ 
+-// Equips are always a pair: the menu offers a uniform together with the face
+-// paint that scores best where Snake stands.
++// Equips are always a pair: a uniform with the face paint Snake keeps, or the
++// uniform he has on with a new face paint.
+ using QueueUniform = bool (*)(uint8_t uniform, uint8_t face);
+ 
+ // Retry inventory discovery from the worker thread, never the render hook.
+diff --git a/src/qcamo.cpp b/src/qcamo.cpp
+index de703c7..304826a 100644
+--- a/src/qcamo.cpp
++++ b/src/qcamo.cpp
+@@ -124,6 +124,23 @@ void* load_asset(uint32_t type, int id)
+     return queue;
+ }
+ 
++// Every change made with Mask on crashed at game RVA 0xC8187 between the face
++// load and the final 0x1A0014, whose handler (0x36B7A6) hides the Mask node
++// from the face byte and clears its bit in the component (0x383670), which
++// then keeps it hidden on every update. The node likely kept pointing at a
++// face resource the load replaced (not proved).
++// With the face byte already off Mask, an early 0x1A0014 hides the node before
++// the load on the next tick. The final refresh shows it again for face 10.
++void hide_mask_node(bool leaving_mask)
++{
++    if (!leaving_mask) {
++        return;
++    }
++    change_phase = "mask-hide";
++    send_player(qcamo::mgs3::kRefreshCamo);
++    LOG_INFO("mask node hidden before the face load");
++}
++
+ void change_camo(uint8_t next, uint8_t next_face)
+ {
+     auto stats = qcamo::mem::read<uintptr_t>(image_base + qcamo::mgs3::kStatsSlot);
+@@ -156,6 +173,19 @@ void change_camo(uint8_t next, uint8_t next_face)
+         change_busy = false;
+         return;
+     }
++    // The early 0x1A0014 below hides the Mask node only outside first person;
++    // the menu refuses these too, but first person can start after the queue.
++    bool leaving_mask = current_face == qcamo::mgs3::kMaskFacePaint;
++    if (leaving_mask) {
++        auto bits = qcamo::mem::read<uint32_t>(image_base + qcamo::mgs3::kPlayerStatus +
++                                               (qcamo::mgs3::kFirstPersonStatus >> 5) * 4);
++        if ((bits >> (qcamo::mgs3::kFirstPersonStatus & 31)) & 1) {
++            change_busy = false;
++            qcamo::pending_sound = qcamo::mgs3::kSoundDenied;
++            LOG_WARN("uniform change ignored: Mask worn in first person");
++            return;
++        }
++    }
+     change_started = GetTickCount64();
+     change_phase = "uniform";
+     change_uniform = next;
+@@ -169,6 +199,7 @@ void change_camo(uint8_t next, uint8_t next_face)
+         }
+         change_phase = "face-begin";
+         send_player(qcamo::mgs3::kBeginFaceChange);
++        hide_mask_node(leaving_mask);
+         settle_frames = 2;
+         LOG_INFO("face-only change %u -> %u pending", current_face, next_face);
+         return;
+@@ -201,6 +232,7 @@ void change_camo(uint8_t next, uint8_t next_face)
+     qcamo::mem::write<uint8_t>(stats + qcamo::mgs3::kEquippedFace,
+                                qcamo::mgs3::kNoFacePaint);
+     send_player(qcamo::mgs3::kBeginFaceChange);
++    hide_mask_node(leaving_mask);
+     // Native Tuxedo path ends after removing face paint. Other uniforms need
+     // the face queue rebuilt before their final refresh.
+     settle_frames = next == qcamo::mgs3::kTuxedoUniform ? 1 : 2;
+@@ -248,11 +280,17 @@ void set_menu_pause(bool pause_menu)
+     auto& pause = *reinterpret_cast<uint32_t*>(image_base + qcamo::mgs3::kPauseLevel);
+     std::atomic_ref pause_level(pause);
+     if (pause_menu) {
++        qcamo::wheel_ours = true;
+         pause_level.fetch_or(qcamo::mgs3::kWheelPause);
+     } else {
+         pause_level.fetch_and(~qcamo::mgs3::kWheelPause);
++        qcamo::wheel_ours = false;
++    }
++    if (qcamo::menu_live.load()) {
++        LOG_INFO("change pause %s", pause_menu ? "on" : "off");
++    } else {
++        LOG_INFO("wheel pause %s", pause_menu ? "set" : "cleared");
+     }
+-    LOG_INFO("wheel pause %s", pause_menu ? "set" : "cleared");
+ }
+ 
+ void __fastcall task_dispatch_hook()
+@@ -468,13 +506,15 @@ DWORD WINAPI init(LPVOID)
+         // our pause promptly when gameplay goes away under an open menu. The
+         // render thread closes its side on the next frame.
+         if (qcamo::menu_open.load()) {
+-            if (qcamo::GateBlock block = qcamo::gate_state(image_base, true);
++            if (qcamo::GateBlock block = qcamo::gate_state(image_base, menu_paused.load());
+                 block != qcamo::GateBlock::None) {
+                 qcamo::menu_open = false;
+                 LOG_INFO("menu closed: %s", qcamo::gate_name(block));
+             }
+         }
+-        set_menu_pause(qcamo::menu_open.load() || change_busy.load());
++        // A live menu leaves the game running and pauses only for a change.
++        set_menu_pause((qcamo::menu_open.load() && !qcamo::menu_live.load()) ||
++                       change_busy.load());
+         Sleep(10);
+     }
+ }

@@ -1,6 +1,6 @@
 # Release process
 
-Windows AMD64 tags use `vMAJOR.MINOR.PATCH`. v0.1.0 is the first narrowly scoped release, not support for every game build. The installer resolves the latest published non-prerelease or an explicit version and verifies its required SHA-256 entry. Public installation requires public repository/release access.
+Windows AMD64 tags use `vMAJOR.MINOR.PATCH`; prereleases add `-alpha.N`, `-beta.N` or `-rc.N`. v0.1.0 is the first narrowly scoped release, not support for every game build. The installer resolves the latest published non-prerelease or an explicit version and verifies its required SHA-256 entry. Public installation requires public repository/release access.
 
 ## Assets
 
@@ -21,5 +21,9 @@ After publication, check anonymous asset URLs and uploaded hashes. Run the downl
 To repair a failed publishing workflow without moving an existing version tag, push the reviewed workflow fix to `release/<version-tag>` (for example `release/v0.1.0`). This uses the workflow from the repair branch but explicitly checks out the original immutable tag for build, tests, assets, and notes. It cannot silently overwrite an existing release: draft creation fails if the release already exists. Installer tests run in a child PowerShell process so expected negative-test exit codes do not leak into the runner's final status.
 
 Hosted Windows runners may use an 8.3 alias in TEMP and grant parent-directory DELETE_CHILD rights. The workflow uses a canonical scratch path under `work/test-temp` and denies that alternate delete-child route on both this scratch tree and the separate `.cache/winfs-tests` fixture tree. File DELETE rights remain available until a fixture explicitly denies them. This keeps strict production path validation and the negative ACL test meaningful without skipping tests or changing game-directory permissions.
+
+## Prereleases
+
+A prerelease tag (`v0.4.0-alpha.1`) runs the same build, tests and packaging, then leaves a **draft** marked prerelease and stops. The Delta controls plugin packages are the locally played builds, not CI builds (the fpv-move build needs the game executable for its file-scan test). Before publishing: download the draft's `mgs3mod_<version>_windows_amd64.zip`, `asi-loader-9.7.4.mgs3mod.zip` and `checksums.txt`, run `scripts/package-delta-alpha.ps1 -Version <tag> -ManagerZip <zip> -LoaderPackage <zip> -Checksums <checksums.txt>` (it refuses inputs that do not match those names and checksums, and plugin payloads other than the played hashes it pins), upload the kit and `delta-controls-checksums.txt` to the draft, then publish it as a prerelease, not as latest. The installer's latest lookup skips prereleases; `-Version <tag>` installs one.
 
 If a gate fails, stop publication. For a published defect, issue a fixed new release; never silently downgrade state or rewrite the existing version. Older binaries may not read schema-3 or schema-4 history, even after the associated mod is removed. Binaries are not Authenticode-signed; do not advise disabling security tools.

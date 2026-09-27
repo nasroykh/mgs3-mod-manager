@@ -16,14 +16,22 @@ const (
 	ID   = "mgs3-mcv-local-0d585dcc6a67"
 )
 
-// Fingerprint identifies one immutable installation identity file.
+// Fingerprint identifies one immutable installation identity file. Alternates
+// lists other accepted SHA-256 values for the same build of that file.
 type Fingerprint struct {
-	Path   string
-	SHA256 string
+	Path       string
+	SHA256     string
+	Alternates []string
 }
 
+// SteamWrappedExecutable is the executable of the pinned build as a Steam copy
+// ships it: SteamStub-wrapped, with the same PE timestamp (0x6980B92F), code
+// section sizes and file length as the executable in Core. The Steam
+// client unpacks it at start, before the ASI loader runs plugins.
+const SteamWrappedExecutable = "81596a6a670263da6ee59c959b65cbf833be985e64fa0332ad926271aa060bfe"
+
 var Core = []Fingerprint{
-	{Path: `METAL GEAR SOLID3.exe`, SHA256: "0d585dcc6a671be5d64d3d0a856c53f9ee0e58e7e4993f76dff29772c7a4bc80"},
+	{Path: `METAL GEAR SOLID3.exe`, SHA256: "0d585dcc6a671be5d64d3d0a856c53f9ee0e58e7e4993f76dff29772c7a4bc80", Alternates: []string{SteamWrappedExecutable}},
 	{Path: `Engine.dll`, SHA256: "4067774bd2945dfab1a81ee0f657b3b6c9414b1b363d29830652e6d93c516996"},
 	{Path: `Renderer.dll`, SHA256: "663199bce1a252861369710d62219a73d2855043ec955ab7e8a926ea13986ac1"},
 	{Path: `launcher.exe`, SHA256: "e061111cef605bdbf0ea7bc9cf686a1d29e317bf1da923e3c92c52f523479784"},
@@ -113,14 +121,10 @@ func Check(root string, core []Fingerprint) error {
 			return fmt.Errorf("duplicate core path: %q", expected.Path)
 		}
 		seen[key] = struct{}{}
-		if len(expected.SHA256) != sha256.Size*2 {
-			return fmt.Errorf("core hash for %q is not SHA-256", expected.Path)
-		}
-		if expected.SHA256 != strings.ToLower(expected.SHA256) {
-			return fmt.Errorf("core hash for %q is not lowercase hex", expected.Path)
-		}
-		if _, err := hex.DecodeString(expected.SHA256); err != nil {
-			return fmt.Errorf("core hash for %q is not lowercase hex: %w", expected.Path, err)
+		for _, want := range append([]string{expected.SHA256}, expected.Alternates...) {
+			if err := checkHash(expected.Path, want); err != nil {
+				return err
+			}
 		}
 		if err := winfs.CheckPath(root, expected.Path, false); err != nil {
 			return fmt.Errorf("core file %q: %w", expected.Path, err)
@@ -139,9 +143,36 @@ func Check(root string, core []Fingerprint) error {
 			return fmt.Errorf("close core %q: %w", expected.Path, closeErr)
 		}
 		actual := hex.EncodeToString(hash.Sum(nil))
-		if actual != strings.ToLower(expected.SHA256) {
-			return fmt.Errorf("core hash mismatch for %q: got %s want %s", expected.Path, actual, expected.SHA256)
+		if !expected.Matches(actual) {
+			return fmt.Errorf("core hash mismatch for %q: got %s want %s", expected.Path, actual,
+				strings.Join(append([]string{expected.SHA256}, expected.Alternates...), " or "))
 		}
+	}
+	return nil
+}
+
+// Matches reports whether a lowercase hex SHA-256 is an accepted hash.
+func (f Fingerprint) Matches(actual string) bool {
+	if actual == f.SHA256 {
+		return true
+	}
+	for _, alternate := range f.Alternates {
+		if actual == alternate {
+			return true
+		}
+	}
+	return false
+}
+
+func checkHash(path, want string) error {
+	if len(want) != sha256.Size*2 {
+		return fmt.Errorf("core hash for %q is not SHA-256", path)
+	}
+	if want != strings.ToLower(want) {
+		return fmt.Errorf("core hash for %q is not lowercase hex", path)
+	}
+	if _, err := hex.DecodeString(want); err != nil {
+		return fmt.Errorf("core hash for %q is not lowercase hex: %w", path, err)
 	}
 	return nil
 }
